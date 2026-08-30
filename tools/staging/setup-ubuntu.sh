@@ -151,7 +151,9 @@ install_openclaw() {
   [[ "$model" == openrouter/* ]] || model="openrouter/$model"
   OPENROUTER_API_KEY="$OPENROUTER_API_KEY" "$openclaw" --profile "$OPENCLAW_PROFILE" models set "$model"
   "$openclaw" --profile "$OPENCLAW_PROFILE" gateway install --force --port "$OPENCLAW_PORT"
-  "$openclaw" --profile "$OPENCLAW_PROFILE" gateway restart
+
+  # gateway install starts the service. A second restart here can race its
+  # first-run migrations and leave the profile temporarily locked.
 
   "$node" --version >/dev/null
 }
