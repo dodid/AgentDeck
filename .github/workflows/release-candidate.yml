@@ -33,7 +33,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Start disposable native MinIO
         run: |
@@ -49,7 +49,7 @@ jobs:
           mc alias set local http://127.0.0.1:9000 "$MINIO_ROOT_USER" "$MINIO_ROOT_PASSWORD"
           mc mb "local/clawchat-${{ matrix.platform }}-${{ github.run_id }}"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         if: matrix.platform == 'openclaw'
         with:
           node-version: "22"
@@ -65,11 +65,11 @@ jobs:
 
       - name: Check out current Hermes
         if: matrix.platform == 'hermes'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NousResearch/hermes-agent
           path: vendor/hermes-agent
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: matrix.platform == 'hermes'
         with:
           python-version: "3.12"
@@ -113,7 +113,7 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
       - name: Upload release-candidate diagnostics
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-candidate-${{ matrix.platform }}
           path: |

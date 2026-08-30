@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Reject sensitive and machine-local files
         run: tools/ci/check-no-sensitive-files.sh
       - name: Verify vendored relay core copies
@@ -38,8 +38,8 @@ jobs:
       run:
         working-directory: packages/relay-core/ts
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -54,8 +54,8 @@ jobs:
       run:
         working-directory: packages/relay-core/python
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
@@ -70,8 +70,8 @@ jobs:
       run:
         working-directory: integrations/openclaw
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: "22"
           cache: npm
@@ -83,17 +83,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Read tested Hermes revision
         id: compatibility
         run: echo "hermes_ref=$(jq -r .hermes.tested_commit compatibility.json)" >> "$GITHUB_OUTPUT"
       - name: Check out tested Hermes revision
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: NousResearch/hermes-agent
           ref: ${{ steps.compatibility.outputs.hermes_ref }}
           path: vendor/hermes-agent
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
           cache: pip
