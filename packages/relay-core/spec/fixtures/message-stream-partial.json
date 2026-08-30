@@ -1,0 +1,25 @@
+{
+  "msg_id": "7c91f2d0",
+  "from": "relay.hermes.local",
+  "to": "agentdeck-ios-alice",
+  "ts_sent": 1764028806200,
+  "prev_key": "msg/agentdeck-ios-alice/8235971194899-bb48de91.json",
+  "route": {
+    "agent_id": "main",
+    "conversation_id": "agent:main:telegram:dm:12345678",
+    "instance_id": "sess-abc-001"
+  },
+  "content": {
+    "type": "text",
+    "text": "I found two failures in ticket 4815: login timeout and stale cache invalidation."
+  },
+  "delivery": {
+    "stream": {
+      "stream_id": "stream-msg-4815-01",
+      "seq": 1,
+      "state": "partial"
+    }
+  },
+  "status": null,
+  "size": 80
+}

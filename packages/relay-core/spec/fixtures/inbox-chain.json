@@ -1,0 +1,110 @@
+{
+  "head": {
+    "head_key": "msg/agentdeck-ios-alice/8235971192099-dd54be83.json",
+    "head_msg_id": "4ab88df1",
+    "head_ts": 1764028807920
+  },
+  "messages": [
+    {
+      "key": "msg/agentdeck-ios-alice/8235971199999-aa13f0c2.json",
+      "message": {
+        "msg_id": "3fbe2a10",
+        "from": "agentdeck-ios-alice",
+        "to": "relay.hermes.local",
+        "ts_sent": 1764028800000,
+        "prev_key": null,
+        "route": {
+          "agent_id": "main",
+          "conversation_id": "agent:main:telegram:dm:12345678",
+          "instance_id": "sess-abc-001"
+        },
+        "content": {
+          "type": "text",
+          "text": "Please summarize the failing tests in ticket 4815."
+        },
+        "delivery": null,
+        "status": null,
+        "size": 50
+      }
+    },
+    {
+      "key": "msg/agentdeck-ios-alice/8235971194899-bb48de91.json",
+      "message": {
+        "msg_id": "5c1be344",
+        "from": "relay.hermes.local",
+        "to": "agentdeck-ios-alice",
+        "ts_sent": 1764028805100,
+        "prev_key": "msg/agentdeck-ios-alice/8235971199999-aa13f0c2.json",
+        "route": {
+          "agent_id": "main",
+          "conversation_id": "agent:main:telegram:dm:12345678",
+          "instance_id": "sess-abc-001"
+        },
+        "content": {
+          "type": "reaction",
+          "target_msg_id": "3fbe2a10",
+          "emoji": "\u2705"
+        },
+        "delivery": null,
+        "status": null,
+        "size": 3
+      }
+    },
+    {
+      "key": "msg/agentdeck-ios-alice/8235971193799-cc7a102e.json",
+      "message": {
+        "msg_id": "7c91f2d0",
+        "from": "relay.hermes.local",
+        "to": "agentdeck-ios-alice",
+        "ts_sent": 1764028806200,
+        "prev_key": "msg/agentdeck-ios-alice/8235971194899-bb48de91.json",
+        "route": {
+          "agent_id": "main",
+          "conversation_id": "agent:main:telegram:dm:12345678",
+          "instance_id": "sess-abc-001"
+        },
+        "content": {
+          "type": "text",
+          "text": "I found two failures in ticket 4815: login timeout and stale cache invalidation."
+        },
+        "delivery": {
+          "stream": {
+            "stream_id": "stream-msg-4815-01",
+            "seq": 1,
+            "state": "partial"
+          }
+        },
+        "status": null,
+        "size": 80
+      }
+    },
+    {
+      "key": "msg/agentdeck-ios-alice/8235971192099-dd54be83.json",
+      "message": {
+        "msg_id": "4ab88df1",
+        "from": "relay.hermes.local",
+        "to": "agentdeck-ios-alice",
+        "ts_sent": 1764028807900,
+        "prev_key": "msg/agentdeck-ios-alice/8235971193799-cc7a102e.json",
+        "route": {
+          "agent_id": "main",
+          "conversation_id": "agent:main:telegram:dm:12345678",
+          "instance_id": "sess-abc-001"
+        },
+        "content": {
+          "type": "text",
+          "text": "I found two failures in ticket 4815: login timeout and stale cache invalidation.\n\nI can prepare a patch after approval."
+        },
+        "delivery": {
+          "stream": {
+            "stream_id": "stream-msg-4815-01",
+            "seq": 2,
+            "state": "final"
+          }
+        },
+        "status": null,
+        "size": 119
+      }
+    }
+  ]
+}

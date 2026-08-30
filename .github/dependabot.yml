@@ -1,0 +1,39 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
+    directory: "/packages/relay-core/ts"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: pip
+    directory: "/packages/relay-core/python"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: npm
+    directory: "/integrations/openclaw"
+    schedule:
+      interval: weekly
+    groups:
+      aws-sdk-s3:
+        patterns:
+          - "@aws-sdk/client-s3"
+          - "@aws-sdk/s3-request-presigner"
+
+  - package-ecosystem: pip
+    directory: "/integrations/hermes"
+    schedule:
+      interval: weekly
+
+  - package-ecosystem: swift
+    directory: "/apps/ios"
+    schedule:
+      interval: weekly

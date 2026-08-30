@@ -1,0 +1,26 @@
+export {
+  MAX_MS,
+  R2Relay,
+  extractTimestampFromRelayKey,
+  padRevTs,
+  sanitizeFragment,
+  type AttachmentKind,
+  type AttachmentRef,
+  type AgentDescriptor,
+  type ConversationDescriptor,
+  type HeadDoc,
+  type IdentityDoc,
+  type InboxBatch,
+  type InboxMessage,
+  type RelayContent,
+  type RelayMessage,
+  type RelayRoute,
+  type RelayCheckpointState,
+  type RelayRetentionConfig,
+  type ServerLimits,
+  type SendMessageOptions,
+  type SendMessageResult,
+  type SweepRuleSummary,
+} from "./relay-core/index.js";
+
+export type { RelayKeyspaceOptions as R2RelayOptions } from "./relay-core/index.js";

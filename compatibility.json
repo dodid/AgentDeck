@@ -1,0 +1,11 @@
+{
+  "protocol": 3,
+  "openclaw": {
+    "tested_version": "2026.7.1-2",
+    "canary": "latest"
+  },
+  "hermes": {
+    "tested_commit": "23bae43cfad6722b5a3b49e782ffc5faaf617c59",
+    "canary": "default-branch"
+  }
+}

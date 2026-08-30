@@ -1,0 +1,21 @@
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.coverage
+.venv/
+python/.venv/
+python/dist/
+python/build/
+python/*.egg-info/
+python/r2_relay_core.egg-info/
+
+# Node / TypeScript
+ts/node_modules/
+ts/dist/
+
+# Logs
+*.log

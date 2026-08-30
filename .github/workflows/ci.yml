@@ -1,0 +1,107 @@
+name: Linux CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: linux-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+jobs:
+  repository-safety:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - name: Reject sensitive and machine-local files
+        run: tools/ci/check-no-sensitive-files.sh
+      - name: Verify vendored relay core copies
+        run: tools/ci/check-vendored-core.sh
+      - name: Verify compatibility manifest
+        run: node tools/ci/check-compatibility-manifest.mjs
+
+  relay-typescript:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: packages/relay-core/ts
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/relay-core/ts/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  relay-python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: packages/relay-core/python
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: packages/relay-core/python/pyproject.toml
+      - run: python -m pip install -e '.[dev]'
+      - run: python -m pytest -q
+
+  openclaw-pinned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: integrations/openclaw
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: integrations/openclaw/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  hermes-pinned:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - name: Read tested Hermes revision
+        id: compatibility
+        run: echo "hermes_ref=$(jq -r .hermes.tested_commit compatibility.json)" >> "$GITHUB_OUTPUT"
+      - name: Check out tested Hermes revision
+        uses: actions/checkout@v7
+        with:
+          repository: NousResearch/hermes-agent
+          ref: ${{ steps.compatibility.outputs.hermes_ref }}
+          path: vendor/hermes-agent
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: integrations/hermes/pyproject.toml
+      - run: python -m pip install -e './integrations/hermes[dev]'
+      - name: Test against the pinned Hermes source
+        env:
+          PYTHONPATH: ${{ github.workspace }}/vendor/hermes-agent
+          HERMES_HOME: ${{ runner.temp }}/hermes-home
+        working-directory: integrations/hermes
+        run: python -m pytest -q
