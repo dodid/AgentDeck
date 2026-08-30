@@ -1,0 +1,363 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://clawchat.app/schemas/r2-relay-v3.json",
+  "title": "R2 Relay v3 contract",
+  "oneOf": [
+    { "$ref": "#/$defs/message" },
+    { "$ref": "#/$defs/identity" },
+    { "$ref": "#/$defs/head" }
+  ],
+  "$defs": {
+    "nullableString": { "type": ["string", "null"] },
+    "route": {
+      "type": "object",
+      "required": ["agent_id"],
+      "properties": {
+        "agent_id": { "type": "string", "minLength": 1 },
+        "conversation_id": { "$ref": "#/$defs/nullableString" },
+        "instance_id": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "attachment": {
+      "type": "object",
+      "required": ["id", "key", "kind"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "key": { "type": "string", "minLength": 1 },
+        "file_name": { "$ref": "#/$defs/nullableString" },
+        "content_type": { "$ref": "#/$defs/nullableString" },
+        "size": { "type": ["integer", "null"], "minimum": 0 },
+        "sha256": { "$ref": "#/$defs/nullableString" },
+        "kind": { "enum": ["image", "video", "audio", "file", "unknown"] },
+        "width": { "type": ["integer", "null"], "minimum": 0 },
+        "height": { "type": ["integer", "null"], "minimum": 0 },
+        "duration_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "preview_image_key": { "$ref": "#/$defs/nullableString" },
+        "preview_image_type": { "$ref": "#/$defs/nullableString" },
+        "preview_size": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "textContent": {
+      "type": "object",
+      "required": ["type", "text"],
+      "properties": {
+        "type": { "const": "text" },
+        "text": { "type": "string" },
+        "attachments": { "type": "array", "items": { "$ref": "#/$defs/attachment" } }
+      },
+      "additionalProperties": false
+    },
+    "reactionContent": {
+      "type": "object",
+      "required": ["type", "target_msg_id", "emoji"],
+      "properties": {
+        "type": { "const": "reaction" },
+        "target_msg_id": { "type": "string", "minLength": 1 },
+        "emoji": { "type": "string", "minLength": 1 },
+        "remove": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "approvalRequestContent": {
+      "type": "object",
+      "required": ["type", "approval_id", "approval_kind", "title", "allowed_decisions"],
+      "properties": {
+        "type": { "const": "approval_request" },
+        "approval_id": { "type": "string", "minLength": 1 },
+        "approval_kind": { "enum": ["exec", "tool", "custom"] },
+        "title": { "type": "string", "minLength": 1 },
+        "body": { "$ref": "#/$defs/nullableString" },
+        "allowed_decisions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string", "minLength": 1 },
+          "uniqueItems": true
+        },
+        "metadata": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "approvalResponseContent": {
+      "type": "object",
+      "required": ["type", "approval_id", "decision"],
+      "properties": {
+        "type": { "const": "approval_response" },
+        "approval_id": { "type": "string", "minLength": 1 },
+        "decision": { "type": "string", "minLength": 1 },
+        "metadata": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "systemContent": {
+      "type": "object",
+      "required": ["type", "event"],
+      "properties": {
+        "type": { "const": "system" },
+        "event": { "type": "string", "minLength": 1 },
+        "data": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "content": {
+      "oneOf": [
+        { "$ref": "#/$defs/textContent" },
+        { "$ref": "#/$defs/reactionContent" },
+        { "$ref": "#/$defs/approvalRequestContent" },
+        { "$ref": "#/$defs/approvalResponseContent" },
+        { "$ref": "#/$defs/systemContent" }
+      ]
+    },
+    "delivery": {
+      "type": ["object", "null"],
+      "properties": {
+        "stream": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["stream_id", "seq", "state"],
+              "properties": {
+                "stream_id": { "type": "string", "minLength": 1 },
+                "seq": { "type": "integer", "minimum": 1 },
+                "state": { "enum": ["partial", "final"] }
+              },
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "status": {
+      "type": ["object", "null"],
+      "required": ["state"],
+      "properties": {
+        "state": { "enum": ["pending", "processing", "done", "error"] },
+        "processed_at": { "type": ["integer", "null"], "minimum": 0 },
+        "processed_by": { "$ref": "#/$defs/nullableString" },
+        "error": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "message": {
+      "type": "object",
+      "required": ["msg_id", "from", "to", "ts_sent", "prev_key", "route", "content"],
+      "properties": {
+        "msg_id": { "type": "string", "minLength": 1 },
+        "from": { "type": "string", "minLength": 1 },
+        "to": { "type": "string", "minLength": 1 },
+        "ts_sent": { "type": "integer", "minimum": 0 },
+        "prev_key": { "$ref": "#/$defs/nullableString" },
+        "route": { "$ref": "#/$defs/route" },
+        "content": { "$ref": "#/$defs/content" },
+        "delivery": { "$ref": "#/$defs/delivery" },
+        "status": { "$ref": "#/$defs/status" },
+        "size": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "protocol": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "r2-relay" },
+        "version": { "const": 3 }
+      },
+      "additionalProperties": false
+    },
+    "software": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "name": { "$ref": "#/$defs/nullableString" },
+        "version": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "messagingCapabilities": {
+      "type": "object",
+      "required": ["text", "streaming", "reactions", "system_events"],
+      "properties": {
+        "text": { "type": "boolean" },
+        "streaming": { "type": "boolean" },
+        "reactions": { "type": "boolean" },
+        "system_events": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "conversationCapabilities": {
+      "type": "object",
+      "required": ["list", "create", "reset", "archive", "threading"],
+      "properties": {
+        "list": { "type": "boolean" },
+        "create": { "type": "boolean" },
+        "reset": { "type": "boolean" },
+        "archive": { "type": "boolean" },
+        "threading": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "agentCapabilities": {
+      "type": "object",
+      "required": ["list", "multiple", "switch", "per_agent_models"],
+      "properties": {
+        "list": { "type": "boolean" },
+        "multiple": { "type": "boolean" },
+        "switch": { "type": "boolean" },
+        "per_agent_models": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "required": ["messaging", "conversations", "agents"],
+      "properties": {
+        "messaging": { "$ref": "#/$defs/messagingCapabilities" },
+        "conversations": { "$ref": "#/$defs/conversationCapabilities" },
+        "agents": { "$ref": "#/$defs/agentCapabilities" },
+        "attachments": {
+          "type": ["object", "null"],
+          "required": ["supported", "kinds"],
+          "properties": {
+            "supported": { "type": "boolean" },
+            "kinds": {
+              "type": "array",
+              "items": { "enum": ["image", "video", "audio", "file", "unknown"] },
+              "uniqueItems": true
+            },
+            "max_bytes_by_kind": {
+              "type": "object",
+              "additionalProperties": { "type": "integer", "minimum": 0 }
+            },
+            "oversize_behavior": { "enum": ["reject", "drop", "link", "summarize"] }
+          },
+          "additionalProperties": false
+        },
+        "approvals": {
+          "type": ["object", "null"],
+          "required": ["exec", "tool", "custom"],
+          "properties": {
+            "exec": { "type": "boolean" },
+            "tool": { "type": "boolean" },
+            "custom": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        },
+        "extensions": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "model": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "label": { "$ref": "#/$defs/nullableString" },
+        "provider": { "$ref": "#/$defs/nullableString" }
+      },
+      "additionalProperties": false
+    },
+    "agent": {
+      "type": "object",
+      "required": ["id", "is_default", "default_route"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "display_name": { "$ref": "#/$defs/nullableString" },
+        "description": { "$ref": "#/$defs/nullableString" },
+        "is_default": { "type": "boolean" },
+        "default_route": { "$ref": "#/$defs/route" },
+        "models": {
+          "type": ["object", "null"],
+          "required": ["available"],
+          "properties": {
+            "available": { "type": "array", "items": { "$ref": "#/$defs/model" } },
+            "default": { "$ref": "#/$defs/nullableString" }
+          },
+          "additionalProperties": false
+        },
+        "capabilities": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "source": {
+      "type": "object",
+      "required": ["channel"],
+      "properties": {
+        "channel": { "type": "string", "minLength": 1 },
+        "chat_kind": { "enum": ["dm", "group", "channel", "thread", null] },
+        "account_id": { "$ref": "#/$defs/nullableString" },
+        "account_display": { "$ref": "#/$defs/nullableString" },
+        "space_id": { "$ref": "#/$defs/nullableString" },
+        "space_display": { "$ref": "#/$defs/nullableString" },
+        "chat_id": { "$ref": "#/$defs/nullableString" },
+        "chat_display": { "$ref": "#/$defs/nullableString" },
+        "participant_id": { "$ref": "#/$defs/nullableString" },
+        "participant_display": { "$ref": "#/$defs/nullableString" },
+        "thread_id": { "$ref": "#/$defs/nullableString" },
+        "thread_display": { "$ref": "#/$defs/nullableString" },
+        "sharing": { "enum": ["private", "shared", "per-user", null] }
+      },
+      "additionalProperties": false
+    },
+    "conversation": {
+      "type": "object",
+      "required": ["id", "route"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "route": { "$ref": "#/$defs/route" },
+        "display_title": { "$ref": "#/$defs/nullableString" },
+        "updated_at": { "type": ["integer", "null"], "minimum": 0 },
+        "source": { "oneOf": [{ "$ref": "#/$defs/source" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
+    "limits": {
+      "type": ["object", "null"],
+      "properties": {
+        "inbound_attachment_max_bytes": {
+          "type": "object",
+          "required": ["image", "video", "audio", "file"],
+          "properties": {
+            "image": { "type": "integer", "minimum": 0 },
+            "video": { "type": "integer", "minimum": 0 },
+            "audio": { "type": "integer", "minimum": 0 },
+            "file": { "type": "integer", "minimum": 0 }
+          },
+          "additionalProperties": false
+        },
+        "oversize_attachment_behavior": { "enum": ["reject", "drop", "link", "summarize", null] }
+      },
+      "additionalProperties": false
+    },
+    "identity": {
+      "type": "object",
+      "required": ["peer", "role", "display_name", "last_seen", "protocol", "software", "capabilities", "agents", "conversations"],
+      "properties": {
+        "peer": { "type": "string", "minLength": 1 },
+        "role": { "enum": ["server", "client"] },
+        "display_name": { "type": "string", "minLength": 1 },
+        "last_seen": { "type": "integer", "minimum": 0 },
+        "protocol": { "$ref": "#/$defs/protocol" },
+        "software": { "$ref": "#/$defs/software" },
+        "capabilities": { "$ref": "#/$defs/capabilities" },
+        "limits": { "$ref": "#/$defs/limits" },
+        "agents": { "type": "array", "items": { "$ref": "#/$defs/agent" } },
+        "conversations": { "type": "array", "items": { "$ref": "#/$defs/conversation" } }
+      },
+      "additionalProperties": false
+    },
+    "head": {
+      "type": "object",
+      "required": ["head_key", "head_msg_id", "head_ts"],
+      "properties": {
+        "head_key": { "type": "string", "minLength": 1 },
+        "head_msg_id": { "type": "string", "minLength": 1 },
+        "head_ts": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

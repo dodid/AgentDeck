@@ -1,0 +1,101 @@
+name: r2-relay
+label: R2 Relay
+kind: platform
+version: 0.1.0
+description: >
+  Cloudflare R2 relay gateway adapter for Hermes Agent.
+author: ClawChat
+requires_env:
+  - name: R2_RELAY_ENDPOINT
+    description: "Cloudflare R2 S3 endpoint URL"
+    prompt: "R2 endpoint URL"
+    password: false
+  - name: R2_RELAY_BUCKET
+    description: "R2 bucket used for relay message objects"
+    prompt: "R2 bucket"
+    password: false
+  - name: R2_RELAY_ACCESS_KEY_ID
+    description: "R2 access key ID"
+    prompt: "R2 access key ID"
+    password: false
+  - name: R2_RELAY_SECRET_ACCESS_KEY
+    description: "R2 secret access key"
+    prompt: "R2 secret access key"
+    password: true
+optional_env:
+  - name: R2_RELAY_SERVER_ID
+    description: "Stable relay server identifier (defaults to hostname)"
+    prompt: "Relay server ID"
+    password: false
+  - name: R2_RELAY_HOME_CHANNEL
+    description: "Default relay target for cron delivery"
+    prompt: "Home relay target"
+    password: false
+  - name: R2_RELAY_HOME_CHANNEL_NAME
+    description: "Display name for the default relay target"
+    prompt: "Home target name"
+    password: false
+  - name: R2_RELAY_HOME_CHANNEL_THREAD_ID
+    description: "Optional default relay thread/session key"
+    prompt: "Home target thread/session"
+    password: false
+  - name: R2_RELAY_DISPLAY_NAME
+    description: "Human-readable gateway name announced via relay identity"
+    prompt: "Display name"
+    password: false
+  - name: R2_RELAY_DISCOVERY_CONVERSATION_ID
+    description: "Discovery conversation ID advertised in relay identity (default: main)"
+    prompt: "Discovery conversation ID"
+    password: false
+  - name: R2_RELAY_DISCOVERY_CONVERSATION_TITLE
+    description: "Optional display title for the discovery conversation"
+    prompt: "Discovery conversation title"
+    password: false
+  - name: R2_RELAY_DISCOVERY_THREAD_ID
+    description: "Optional discovery thread ID"
+    prompt: "Discovery thread ID"
+    password: false
+  - name: R2_RELAY_MODELS
+    description: "Comma-separated available model IDs advertised to the relay client (id|label|provider)"
+    prompt: "Available models (e.g. openai/gpt-4o|GPT-4o|openai)"
+    password: false
+  - name: R2_RELAY_DEFAULT_MODEL
+    description: "Default model ID pre-selected for new relay sessions"
+    prompt: "Default model ID"
+    password: false
+  - name: R2_RELAY_ALLOWED_USERS
+    description: "Comma-separated relay peer IDs allowed to talk to Hermes"
+    prompt: "Allowed relay peer IDs"
+    password: false
+  - name: R2_RELAY_ALLOW_ALL_USERS
+    description: "Allow all relay peers to talk to Hermes"
+    prompt: "Allow all users? (true/false)"
+    password: false
+  - name: R2_RELAY_POLL_INTERVAL_MS
+    description: "Inbox poll interval in milliseconds"
+    prompt: "Poll interval ms"
+    password: false
+  - name: R2_RELAY_BACKOFF_MAX_MS
+    description: "Maximum reconnect backoff in milliseconds"
+    prompt: "Backoff max ms"
+    password: false
+  - name: R2_RELAY_OVERSIZE_ATTACHMENT_BEHAVIOR
+    description: "How inbound oversized attachments are handled"
+    prompt: "Oversize attachment behavior"
+    password: false
+  - name: R2_RELAY_MAX_INBOUND_IMAGE_BYTES
+    description: "Optional max inbound image bytes"
+    prompt: "Max inbound image bytes"
+    password: false
+  - name: R2_RELAY_MAX_INBOUND_VIDEO_BYTES
+    description: "Optional max inbound video bytes"
+    prompt: "Max inbound video bytes"
+    password: false
+  - name: R2_RELAY_MAX_INBOUND_AUDIO_BYTES
+    description: "Optional max inbound audio bytes"
+    prompt: "Max inbound audio bytes"
+    password: false
+  - name: R2_RELAY_MAX_INBOUND_FILE_BYTES
+    description: "Optional max inbound file bytes"
+    prompt: "Max inbound file bytes"
+    password: false

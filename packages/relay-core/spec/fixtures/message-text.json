@@ -1,0 +1,40 @@
+{
+  "msg_id": "9f2c1a7b",
+  "from": "clawchat-ios-alice",
+  "to": "relay.openclaw.dev",
+  "ts_sent": 1764028795000,
+  "prev_key": "msg/relay.openclaw.dev/8235971205499-0c4d2b19.json",
+  "route": {
+    "agent_id": "main",
+    "conversation_id": "agent:main:r2_relay:default:direct:clawchat-ios-alice",
+    "instance_id": "session-id-alice-01"
+  },
+  "content": {
+    "type": "text",
+    "text": "Please summarize the failing tests in ticket 4815.",
+    "attachments": [
+      {
+        "id": "att-01",
+        "key": "att/relay.openclaw.dev/8235971204999-9f2c1a7b-00-ticket-4815-log.png",
+        "file_name": "ticket-4815-log.png",
+        "content_type": "image/png",
+        "size": 284019,
+        "sha256": "cef389deb62d1e16596d64566d79712ba9572324b5baf3a8211366891a936b64",
+        "kind": "image",
+        "width": 1440,
+        "height": 900,
+        "duration_ms": null,
+        "preview_image_key": null,
+        "preview_image_type": null,
+        "preview_size": null
+      }
+    ]
+  },
+  "delivery": null,
+  "status": {
+    "state": "done",
+    "processed_at": 1764028795300,
+    "processed_by": "relay.openclaw.dev"
+  },
+  "size": 50
+}

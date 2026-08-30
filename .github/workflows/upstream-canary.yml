@@ -1,0 +1,95 @@
+name: Upstream canary
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+jobs:
+  openclaw_latest:
+    name: OpenClaw latest
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: integrations/openclaw
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: integrations/openclaw/package-lock.json
+      - run: npm ci
+      - name: Replace the pinned development dependency with latest OpenClaw
+        run: npm install --no-save openclaw@latest
+      - run: npm test
+
+  hermes_main:
+    name: Hermes main
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check out current Hermes
+        uses: actions/checkout@v4
+        with:
+          repository: NousResearch/hermes-agent
+          path: vendor/hermes-agent
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: integrations/hermes/pyproject.toml
+      - run: python -m pip install -e './integrations/hermes[dev]'
+      - name: Test against current Hermes source
+        env:
+          PYTHONPATH: ${{ github.workspace }}/vendor/hermes-agent
+          HERMES_HOME: ${{ runner.temp }}/hermes-home
+        working-directory: integrations/hermes
+        run: python -m pytest -q
+
+  report_failure:
+    name: Report canary failure
+    if: always() && (needs.openclaw_latest.result == 'failure' || needs.hermes_main.result == 'failure')
+    needs: [openclaw_latest, hermes_main]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Create or update the canary failure issue
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "Upstream compatibility canary is failing";
+            const body = [
+              `Workflow: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+              `OpenClaw latest: ${{ needs.openclaw_latest.result }}`,
+              `Hermes main: ${{ needs.hermes_main.result }}`,
+              "",
+              "No production credentials or personal infrastructure were used by this run."
+            ].join("\n");
+            const { data: issues } = await github.rest.issues.listForRepo({
+              ...context.repo,
+              state: "open",
+              per_page: 100
+            });
+            const existing = issues.find(issue => issue.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: existing.number,
+                body
+              });
+            } else {
+              await github.rest.issues.create({ ...context.repo, title, body });
+            }

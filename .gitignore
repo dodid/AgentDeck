@@ -1,0 +1,41 @@
+.DS_Store
+*.log
+
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.key
+*.pem
+**/r2relay.local.json
+**/r2relay.config.json
+
+# Xcode
+**/DerivedData/
+**/build/
+**/*.xcuserstate
+**/xcuserdata/
+
+# Node / TypeScript
+**/node_modules/
+**/dist/
+**/*.tgz
+**/coverage/
+**/e2e-artifacts/
+
+# Python
+**/.venv/
+**/.venv-*/
+**/__pycache__/
+**/.pytest_cache/
+**/*.py[cod]
+**/*.egg-info/
+**/.coverage
+
+# CI output
+**/*.xcresult/
+artifacts/

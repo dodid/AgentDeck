@@ -1,0 +1,6 @@
+# Changes to trust boundaries require maintainer review.
+/.github/workflows/ @dodid
+/packages/relay-core/spec/ @dodid
+/apps/ios/ClawChat.xcodeproj/ @dodid
+/apps/ios/ClawChat/Services/Relay/ @dodid
+/SECURITY.md @dodid

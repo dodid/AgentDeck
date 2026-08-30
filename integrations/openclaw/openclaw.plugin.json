@@ -1,0 +1,41 @@
+{
+  "id": "r2-relay-channel",
+  "kind": "channel",
+  "name": "R2 Relay Channel",
+  "description": "Cloudflare R2 relay channel plugin for OpenClaw by ClawChat App.",
+  "channels": ["r2-relay-channel"],
+  "channelConfigs": {
+    "r2-relay-channel": {
+      "label": "R2 Relay",
+      "description": "Cloudflare R2 relay channel for direct text messaging.",
+      "schema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "configFile": { "type": "string" }
+        }
+      },
+      "uiHints": {
+        "configFile": {
+          "label": "Config file",
+          "placeholder": "/path/to/r2relay.config.json"
+        }
+      }
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "r2-relay-channel": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "enabled": { "type": "boolean" },
+          "configFile": { "type": "string" }
+        }
+      }
+    }
+  }
+}

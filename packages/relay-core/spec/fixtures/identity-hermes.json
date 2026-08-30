@@ -1,0 +1,50 @@
+{
+  "peer": "relay.hermes.local",
+  "display_name": "Hermes Relay Adapter",
+  "role": "server",
+  "last_seen": 1764028800000,
+  "protocol": { "name": "r2-relay", "version": 3 },
+  "software": { "id": "hermes", "name": "Hermes", "version": "0.1.0" },
+  "capabilities": {
+    "messaging": { "text": true, "streaming": true, "reactions": false, "system_events": false },
+    "conversations": { "list": true, "create": false, "reset": false, "archive": false, "threading": true },
+    "agents": { "list": false, "multiple": false, "switch": false, "per_agent_models": false },
+    "attachments": {
+      "supported": true,
+      "kinds": ["image", "video", "audio", "file"],
+      "max_bytes_by_kind": { "image": 8388608, "video": 33554432, "audio": 16777216, "file": 16777216 },
+      "oversize_behavior": "reject"
+    },
+    "approvals": null
+  },
+  "limits": null,
+  "agents": [
+    {
+      "id": "main",
+      "display_name": "Hermes",
+      "description": null,
+      "is_default": true,
+      "default_route": { "agent_id": "main" },
+      "models": null,
+      "capabilities": null
+    }
+  ],
+  "conversations": [
+    {
+      "id": "agent:main:telegram:dm:12345678",
+      "route": {
+        "agent_id": "main",
+        "conversation_id": "agent:main:telegram:dm:12345678",
+        "instance_id": "sess-abc-001"
+      },
+      "display_title": "Ticket 4815",
+      "updated_at": null,
+      "source": {
+        "channel": "telegram",
+        "chat_kind": "dm",
+        "participant_id": "12345678",
+        "participant_display": "Alice"
+      }
+    }
+  ]
+}
