@@ -502,7 +502,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:groue/GRDB.swift.git";
+			repositoryURL = "https://github.com/groue/GRDB.swift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 7.10.0;
