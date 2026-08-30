@@ -195,7 +195,7 @@ install_hermes() {
   "$HERMES_REPO/venv/bin/python" -m pip install --disable-pip-version-check -e "$HERMES_REPO"
 
   write_hermes_env
-  HERMES_HOME="$HERMES_HOME" "$REPO_ROOT/integrations/hermes/scripts/install-into-hermes.sh" "$HERMES_REPO" --editable
+  HERMES_HOME="$HERMES_HOME" bash "$REPO_ROOT/integrations/hermes/scripts/install-into-hermes.sh" "$HERMES_REPO" --editable
 
   local hermes="$HERMES_REPO/venv/bin/hermes"
   HERMES_HOME="$HERMES_HOME" "$hermes" config set model.provider openrouter
