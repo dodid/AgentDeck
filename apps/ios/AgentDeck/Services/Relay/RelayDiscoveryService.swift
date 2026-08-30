@@ -7,7 +7,7 @@ struct RelayDiscoveryService {
     private static let staleIdentityInterval: TimeInterval = 12 * 60 * 60
 
     init(config: ConnectionConfig) {
-        self.store = AWSR2ObjectStore(
+        self.store = R2S3ObjectStore(
             endpoint: config.endpoint,
             bucket: config.bucket,
             region: config.region,

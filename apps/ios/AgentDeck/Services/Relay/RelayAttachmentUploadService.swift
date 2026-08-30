@@ -6,7 +6,7 @@ struct RelayAttachmentUploadService: Sendable {
     private let store: R2ObjectStore
 
     nonisolated init(config: ConnectionConfig) {
-        self.store = AWSR2ObjectStore(
+        self.store = R2S3ObjectStore(
             endpoint: config.endpoint,
             bucket: config.bucket,
             region: config.region,

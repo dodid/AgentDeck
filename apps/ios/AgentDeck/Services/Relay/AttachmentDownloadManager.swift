@@ -77,7 +77,7 @@ final class AttachmentDownloadManager {
                     cache[objectKey] = .failed("No connection config")
                     return
                 }
-                let store = AWSR2ObjectStore(
+                let store = R2S3ObjectStore(
                     endpoint: config.endpoint,
                     bucket: config.bucket,
                     region: config.region,

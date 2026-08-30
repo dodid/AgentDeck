@@ -62,9 +62,9 @@ def make_adapter(service: ServiceStub) -> R2RelayAdapter:
     return R2RelayAdapter(PlatformConfig(enabled=True), service=service)
 
 
-def test_requirements_follow_credentials(relay_env, monkeypatch):
+def test_requirements_probe_boto3_instead_of_credentials(monkeypatch):
     assert check_r2_relay_requirements() is True
-    monkeypatch.delenv("R2_RELAY_ENDPOINT")
+    monkeypatch.setattr("r2_relay_adapter.adapter.importlib.util.find_spec", lambda name: None)
     assert check_r2_relay_requirements() is False
 
 
@@ -164,7 +164,7 @@ async def test_edit_message_reuses_stream_id_and_finishes(relay_env):
     adapter = make_adapter(service)
 
     first = await adapter.send("phone-1", "partial ▉")
-    second = await adapter.edit_message("phone-1", first.message_id, "complete")
+    second = await adapter.edit_message("phone-1", first.message_id, "complete ▉", finalize=True)
 
     assert first.success and second.success
     first_stream = service.sent[0][1]["delivery"]["stream"]

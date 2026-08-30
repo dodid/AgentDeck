@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib.util
 import logging
 import mimetypes
 import os
@@ -36,8 +37,7 @@ logger = logging.getLogger(__name__)
 
 
 def check_r2_relay_requirements() -> bool:
-    cfg = resolve_r2_relay_env_config({})
-    return cfg.configured
+    return importlib.util.find_spec('boto3') is not None
 
 
 def _resolve_hermes_home() -> Path:
@@ -399,6 +399,8 @@ class R2RelayAdapter(BasePlatformAdapter):
         chat_id: str,
         message_id: str,
         content: str,
+        *,
+        finalize: bool = False,
     ) -> SendResult:
         if not self._relay_config.configured:
             return SendResult(success=False, error='R2 relay is not configured in environment variables')
@@ -416,7 +418,7 @@ class R2RelayAdapter(BasePlatformAdapter):
             self._stream_sessions[stream_key] = state
 
         next_seq = int(state['next_seq'])
-        stream_state = 'partial' if '▉' in content else 'final'
+        stream_state = 'final' if finalize or '▉' not in content else 'partial'
         metadata = {
             'stream_id': state['stream_id'],
             'stream_seq': next_seq,

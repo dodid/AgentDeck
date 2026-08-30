@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		D45F06DA2F7587C80000AB40 /* AWSS3 in Frameworks */ = {isa = PBXBuildFile; productRef = D45F06D92F7587C80000AB40 /* AWSS3 */; };
 		D45F06DD2F7588920000AB40 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D45F06DC2F7588920000AB40 /* GRDB */; };
 		D4FE9CA62F7B7804007D292B /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4FE9CA52F7B7804007D292B /* StoreKit.framework */; };
 /* End PBXBuildFile section */
@@ -54,7 +53,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				D4FE9CA62F7B7804007D292B /* StoreKit.framework in Frameworks */,
-				D45F06DA2F7587C80000AB40 /* AWSS3 in Frameworks */,
 				D45F06DD2F7588920000AB40 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -132,7 +130,6 @@
 			);
 			name = AgentDeck;
 			packageProductDependencies = (
-				D45F06D92F7587C80000AB40 /* AWSS3 */,
 				D45F06DC2F7588920000AB40 /* GRDB */,
 			);
 			productName = AgentDeck;
@@ -181,7 +178,6 @@
 			mainGroup = D45F060A2F757A1B0000AB40;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D45F06D82F7587C80000AB40 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */,
 				D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -504,17 +500,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D45F06D82F7587C80000AB40 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/awslabs/aws-sdk-swift.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.7.72;
-			};
-		};
 		D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/groue/GRDB.swift";
+			repositoryURL = "git@github.com:groue/GRDB.swift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 7.10.0;
@@ -523,11 +511,6 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		D45F06D92F7587C80000AB40 /* AWSS3 */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = D45F06D82F7587C80000AB40 /* XCRemoteSwiftPackageReference "aws-sdk-swift" */;
-			productName = AWSS3;
-		};
 		D45F06DC2F7588920000AB40 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */;

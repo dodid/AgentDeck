@@ -10,19 +10,32 @@ This package adds relay v3 support to Hermes as a user plugin. It publishes Herm
 
 ## Install
 
-From this directory:
+Install and enable the plugin through Hermes's supported plugin manager:
 
 ```sh
-./scripts/build.sh
-./scripts/deploy-into-hermes.sh ~/.hermes/hermes-agent
-./scripts/config-wizard.sh
+hermes plugins install dodid/AgentDeck/integrations/hermes --enable
+uv pip install --python ~/.hermes/hermes-agent/venv/bin/python "boto3>=1.34.0"
+hermes gateway restart
 ```
 
-The deploy script installs the package into the Hermes environment, copies the plugin to `~/.hermes/plugins/r2-relay/`, and enables `r2-relay` in `~/.hermes/config.yaml`.
+Hermes clones this monorepo subdirectory into `~/.hermes/plugins/r2-relay/`,
+prompts for the required relay environment variables, and records the plugin so
+`hermes plugins update r2-relay` and `hermes plugins remove r2-relay` work normally.
+Hermes does not install third-party Python dependencies from a Git plugin, so the
+second command installs the R2 SDK into the standard Hermes environment.
 
-The wizard stores relay credentials in `~/.hermes/.env`. Do not put credentials in `config.yaml` or this repository.
+The plugin installer stores relay credentials in `~/.hermes/.env`. Do not put
+credentials in `config.yaml` or this repository.
+
+Python package managers can alternatively discover the integration through its
+`hermes_agent.plugins` entry point. Install the package into the same Python
+environment that runs Hermes, then run `hermes plugins enable r2-relay`.
 
 See [docs/install.md](docs/install.md) for environment variables and troubleshooting.
+
+The scripts in `scripts/` are limited to building, bootstrapping a development
+environment, and editing local relay configuration. Plugin installation,
+updates, enablement, and removal belong to Hermes.
 
 ## Development
 

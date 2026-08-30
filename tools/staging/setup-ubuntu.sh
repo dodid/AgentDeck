@@ -193,11 +193,12 @@ install_hermes() {
   fi
   "$HERMES_REPO/venv/bin/python" -m pip install --disable-pip-version-check --upgrade pip wheel
   "$HERMES_REPO/venv/bin/python" -m pip install --disable-pip-version-check -e "$HERMES_REPO"
+  "$HERMES_REPO/venv/bin/python" -m pip install --disable-pip-version-check -e "$REPO_ROOT/integrations/hermes"
 
   write_hermes_env
-  HERMES_HOME="$HERMES_HOME" bash "$REPO_ROOT/integrations/hermes/scripts/install-into-hermes.sh" "$HERMES_REPO" --editable
 
   local hermes="$HERMES_REPO/venv/bin/hermes"
+  HERMES_HOME="$HERMES_HOME" "$hermes" plugins enable r2-relay
   HERMES_HOME="$HERMES_HOME" "$hermes" config set model.provider openrouter
   HERMES_HOME="$HERMES_HOME" "$hermes" config set model.default "$AGENTDECK_MODEL"
   HERMES_HOME="$HERMES_HOME" "$hermes" gateway install --force

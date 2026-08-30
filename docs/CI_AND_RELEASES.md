@@ -16,7 +16,7 @@ AgentDeck uses secretless GitHub-hosted CI for routine verification and Xcode Cl
 
 ### iOS CI
 
-`.github/workflows/ios.yml` runs unsigned builds and XCTest on a GitHub-hosted macOS runner. The workflow explicitly enables the pinned Smithy Swift package plugin required by the AWS SDK.
+`.github/workflows/ios.yml` runs unsigned builds and XCTest on a GitHub-hosted macOS runner.
 
 ### Upstream canary
 
