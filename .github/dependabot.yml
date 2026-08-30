@@ -22,6 +22,11 @@ updates:
     directory: "/integrations/openclaw"
     schedule:
       interval: weekly
+    groups:
+      aws-sdk-s3:
+        patterns:
+          - "@aws-sdk/client-s3"
+          - "@aws-sdk/s3-request-presigner"
 
   - package-ecosystem: pip
     directory: "/integrations/hermes"

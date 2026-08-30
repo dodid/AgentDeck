@@ -542,7 +542,7 @@ private struct ApprovalCardView: View {
                     .foregroundStyle(AppTheme.assistantAccent)
                 Text(approval.title)
                     .font(style.statusFont.weight(.semibold))
-                    .foregroundStyle(AppTheme.primary)
+                    .foregroundStyle(AppTheme.text)
                 if let body = approval.body, !body.isEmpty {
                     Text(body)
                         .font(style.statusFont)
