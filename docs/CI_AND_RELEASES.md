@@ -28,7 +28,7 @@ AgentDeck uses secretless GitHub-hosted CI for routine verification and Xcode Cl
 
 ### Optional model-backed E2E
 
-`.github/workflows/model-e2e.yml` runs twice weekly and on demand. If the repository Actions secret `OPENROUTER_API_KEY` exists, it sends text and attachment turns through the latest OpenClaw runtime and a real OpenRouter model. Set the non-secret repository Actions variable `OPENROUTER_MODEL` to an OpenClaw model identifier such as `openrouter/openai/gpt-5.2-chat`; when it is absent, the workflow uses `openrouter/auto`. If the API-key secret is absent, this optional job reports a skip without weakening deterministic required checks.
+`.github/workflows/model-e2e.yml` runs twice weekly and on demand. If the repository Actions secret `OPENROUTER_API_KEY` exists, it sends text and attachment turns through the latest OpenClaw runtime and validates the Hermes relay adapter plus a real Hermes model turn. Set the non-secret repository Actions variable `OPENROUTER_MODEL` to an OpenClaw model identifier such as `openrouter/openai/gpt-5.2-chat`; the Hermes lane removes the leading `openrouter/` when passing that model to Hermes. A configured API key without a model is an error. If the API-key secret is absent, these optional jobs report a skip without weakening deterministic required checks.
 
 ## Security boundaries
 

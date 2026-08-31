@@ -21,6 +21,7 @@ const clientPeer = process.env.R2_RELAY_E2E_CLIENT_PEER ?? `ci-agentdeck-${proce
 const transportOnly = process.env.R2_RELAY_E2E_MODE === "transport";
 const modelProvider = process.env.OPENROUTER_API_KEY ? "openrouter" : "deepseek";
 const modelId = process.env.R2_RELAY_E2E_MODEL
+  ?? process.env.OPENROUTER_MODEL
   ?? (modelProvider === "openrouter" ? "openrouter/auto" : "deepseek/deepseek-v4-flash");
 const textCheckToken = process.env.R2_RELAY_E2E_TEXT_TOKEN ?? "TEXT-CHECK-7391";
 const imageCheckToken = process.env.R2_RELAY_E2E_IMAGE_TOKEN ?? "IMAGE-CHECK-RED";
@@ -127,7 +128,7 @@ async function configureTransportOnlyHost() {
 }
 
 async function installPlugin() {
-  const installFlags = ["--force", "--dangerously-force-unsafe-install"];
+  const installFlags = ["--force", "--dangerously-force-unsafe-install", "--accept-capabilities"];
   const installSpec = process.env.R2_RELAY_E2E_PLUGIN_SPEC;
   if (installSpec) {
     await runOpenClaw(["plugins", "install", installSpec, ...installFlags]);

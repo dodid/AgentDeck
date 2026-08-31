@@ -19,6 +19,7 @@ jobs:
     timeout-minutes: 45
     env:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || secrets.OPENROUTER_MODEL }}
       NPM_CONFIG_AUDIT: "false"
       NPM_CONFIG_FUND: "false"
       NPM_CONFIG_UPDATE_NOTIFIER: "false"
@@ -26,23 +27,26 @@ jobs:
       MINIO_ROOT_PASSWORD: minioadmin
     steps:
       - uses: actions/checkout@v7
-      - id: secret
-        name: Check optional OpenRouter secret
+      - id: config
+        name: Check optional OpenRouter configuration
         run: |
-          if [[ -n "$OPENROUTER_API_KEY" ]]; then
-            echo "available=true" >> "$GITHUB_OUTPUT"
-          else
+          if [[ -z "$OPENROUTER_API_KEY" ]]; then
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "OPENROUTER_API_KEY is not configured; skipping the optional model-backed check."
+          elif [[ -z "$OPENROUTER_MODEL" ]]; then
+            echo "::error::OPENROUTER_MODEL must be configured as a repository variable."
+            exit 1
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/setup-node@v7
-        if: steps.secret.outputs.available == 'true'
+        if: steps.config.outputs.available == 'true'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: integrations/openclaw/package-lock.json
       - name: Start disposable MinIO
-        if: steps.secret.outputs.available == 'true'
+        if: steps.config.outputs.available == 'true'
         run: |
           docker run --detach --rm \
             --name agentdeck-model-minio \
@@ -58,7 +62,7 @@ jobs:
           done
           exit 1
       - name: Run real model relay conversation
-        if: steps.secret.outputs.available == 'true'
+        if: steps.config.outputs.available == 'true'
         working-directory: integrations/openclaw
         env:
           R2_RELAY_E2E_ENDPOINT: http://127.0.0.1:9000
@@ -67,7 +71,6 @@ jobs:
           R2_RELAY_E2E_SECRET_ACCESS_KEY: minioadmin
           R2_RELAY_E2E_SERVER_ID: model-openclaw
           R2_RELAY_E2E_CLIENT_PEER: model-agentdeck
-          R2_RELAY_E2E_MODEL: ${{ vars.OPENROUTER_MODEL || 'openrouter/auto' }}
           R2_RELAY_E2E_ARTIFACTS_DIR: ${{ runner.temp }}/model-e2e
         run: |
           npm ci
@@ -75,9 +78,93 @@ jobs:
           npm run build
           npm run e2e:openclaw
       - name: Upload redacted model E2E diagnostics
-        if: always() && steps.secret.outputs.available == 'true'
+        if: always() && steps.config.outputs.available == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: openclaw-openrouter-e2e
           path: ${{ runner.temp }}/model-e2e
+          if-no-files-found: ignore
+
+  hermes_openrouter:
+    name: Hermes with OpenRouter
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      OPENROUTER_MODEL: ${{ vars.OPENROUTER_MODEL || secrets.OPENROUTER_MODEL }}
+      AGENTDECK_TEST_R2_ENDPOINT: http://127.0.0.1:9000
+      AGENTDECK_TEST_R2_BUCKET: agentdeck-hermes-model-${{ github.run_id }}
+      AGENTDECK_TEST_R2_ACCESS_KEY_ID: minioadmin
+      AGENTDECK_TEST_R2_SECRET_ACCESS_KEY: minioadmin
+      AGENTDECK_TEST_CLIENT_PEER: model-agentdeck
+    steps:
+      - uses: actions/checkout@v7
+      - id: config
+        name: Check optional OpenRouter configuration
+        run: |
+          if [[ -z "$OPENROUTER_API_KEY" ]]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "OPENROUTER_API_KEY is not configured; skipping the optional model-backed check."
+          elif [[ -z "$OPENROUTER_MODEL" ]]; then
+            echo "::error::OPENROUTER_MODEL must be configured as a repository variable."
+            exit 1
+          else
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Configure isolated Hermes home
+        if: steps.config.outputs.available == 'true'
+        run: echo "HERMES_HOME=$RUNNER_TEMP/hermes-home" >> "$GITHUB_ENV"
+      - name: Check out current Hermes
+        if: steps.config.outputs.available == 'true'
+        uses: actions/checkout@v7
+        with:
+          repository: NousResearch/hermes-agent
+          path: vendor/hermes-agent
+      - uses: actions/setup-python@v7
+        if: steps.config.outputs.available == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            integrations/hermes/pyproject.toml
+            vendor/hermes-agent/pyproject.toml
+      - name: Install Hermes and the relay adapter
+        if: steps.config.outputs.available == 'true'
+        run: |
+          python -m pip install -e './vendor/hermes-agent'
+          python -m pip install -e './integrations/hermes[dev]'
+      - name: Start disposable MinIO
+        if: steps.config.outputs.available == 'true'
+        run: |
+          docker run --detach --rm \
+            --name agentdeck-hermes-model-minio \
+            --publish 9000:9000 \
+            --env MINIO_ROOT_USER=minioadmin \
+            --env MINIO_ROOT_PASSWORD=minioadmin \
+            minio/minio server /data
+          for _ in {1..60}; do
+            if curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Validate Hermes relay adapter and real model
+        if: steps.config.outputs.available == 'true'
+        working-directory: integrations/hermes
+        run: |
+          python -m pytest -q tests/test_live_minio.py
+          hermes_model=${OPENROUTER_MODEL#openrouter/}
+          response=$(python -m hermes_cli.main \
+            --provider openrouter \
+            --model "$hermes_model" \
+            --usage-file '${{ runner.temp }}/hermes-model-usage.json' \
+            --oneshot 'Reply with exactly HERMES-MODEL-CHECK-7391 and nothing else.')
+          test "$response" = 'HERMES-MODEL-CHECK-7391'
+      - name: Upload Hermes model diagnostics
+        if: always() && steps.config.outputs.available == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: hermes-openrouter-e2e
+          path: ${{ runner.temp }}/hermes-model-usage.json
           if-no-files-found: ignore
