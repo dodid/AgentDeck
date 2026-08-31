@@ -72,6 +72,7 @@ jobs:
         run: |
           npm ci
           npm install --no-save openclaw@latest
+          npm run build
           npm run e2e:openclaw
       - name: Upload redacted model E2E diagnostics
         if: always() && steps.secret.outputs.available == 'true'
