@@ -34,7 +34,7 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "OPENROUTER_API_KEY is not configured; skipping the optional model-backed check."
           elif [[ -z "$OPENROUTER_MODEL" ]]; then
-            echo "::error::OPENROUTER_MODEL must be configured as a repository variable."
+            echo "::error::OPENROUTER_MODEL must be configured as a repository variable or secret."
             exit 1
           else
             echo "available=true" >> "$GITHUB_OUTPUT"
@@ -106,7 +106,7 @@ jobs:
             echo "available=false" >> "$GITHUB_OUTPUT"
             echo "OPENROUTER_API_KEY is not configured; skipping the optional model-backed check."
           elif [[ -z "$OPENROUTER_MODEL" ]]; then
-            echo "::error::OPENROUTER_MODEL must be configured as a repository variable."
+            echo "::error::OPENROUTER_MODEL must be configured as a repository variable or secret."
             exit 1
           else
             echo "available=true" >> "$GITHUB_OUTPUT"

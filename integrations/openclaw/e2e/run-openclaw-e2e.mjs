@@ -20,9 +20,12 @@ const serverId = process.env.R2_RELAY_E2E_SERVER_ID ?? `ci-openclaw-${process.en
 const clientPeer = process.env.R2_RELAY_E2E_CLIENT_PEER ?? `ci-agentdeck-${process.env.GITHUB_RUN_ID ?? Date.now()}`;
 const transportOnly = process.env.R2_RELAY_E2E_MODE === "transport";
 const modelProvider = process.env.OPENROUTER_API_KEY ? "openrouter" : "deepseek";
-const modelId = process.env.R2_RELAY_E2E_MODEL
+const configuredModelId = process.env.R2_RELAY_E2E_MODEL
   ?? process.env.OPENROUTER_MODEL
   ?? (modelProvider === "openrouter" ? "openrouter/auto" : "deepseek/deepseek-v4-flash");
+const modelId = modelProvider === "openrouter" && !configuredModelId.startsWith("openrouter/")
+  ? `openrouter/${configuredModelId}`
+  : configuredModelId;
 const textCheckToken = process.env.R2_RELAY_E2E_TEXT_TOKEN ?? "TEXT-CHECK-7391";
 const imageCheckToken = process.env.R2_RELAY_E2E_IMAGE_TOKEN ?? "IMAGE-CHECK-RED";
 const fileCheckToken = process.env.R2_RELAY_E2E_FILE_TOKEN ?? "FILE-CHECK-5821";
