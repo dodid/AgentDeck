@@ -74,7 +74,7 @@ printf '%s\n' \
   'import sys' \
   'from hermes_cli.plugins_cmd import cmd_install, cmd_list, cmd_remove, cmd_update' \
   'action = sys.argv[1]' \
-  'if action == "install": cmd_install(sys.argv[2], force=False, enable=True)' \
+  'if action == "install": cmd_install(sys.argv[2], force=True, enable=True)' \
   'elif action == "update": cmd_update(sys.argv[2])' \
   'elif action == "remove": cmd_remove(sys.argv[2])' \
   'elif action == "list": cmd_list()' \

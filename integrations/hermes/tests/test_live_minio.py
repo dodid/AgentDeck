@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import replace
 from pathlib import Path
 
@@ -24,7 +25,7 @@ def _live_config(monkeypatch):
     }
     values = {}
     for relay_name, test_name in names.items():
-        value = __import__("os").environ.get(test_name)
+        value = os.environ.get(test_name)
         if not value:
             pytest.skip("live MinIO integration is enabled only by maintenance workflows")
         values[relay_name] = value
@@ -48,7 +49,7 @@ async def test_installed_hermes_runtime_round_trip_with_minio(monkeypatch, tmp_p
     existing = await server_client.list_prefix("")
     await server_client.delete_objects([item["Key"] for item in existing])
 
-    client_peer = __import__("os").environ.get("AGENTDECK_TEST_CLIENT_PEER", "ios-live")
+    client_peer = os.environ.get("AGENTDECK_TEST_CLIENT_PEER", "ios-live")
     phone_config = replace(server_config, server_id=client_peer, display_name="AgentDeck CI")
     phone_service = build_relay_service(
         config=phone_config,
