@@ -1,10 +1,7 @@
 import fs from "node:fs";
 import {
-  MAX_AUDIO_BYTES,
-  MAX_DOCUMENT_BYTES,
-  MAX_IMAGE_BYTES,
-  MAX_VIDEO_BYTES,
   kindFromMime,
+  maxBytesForKind,
   type OutboundMediaAccess,
 } from "openclaw/plugin-sdk/media-runtime";
 import { loadOutboundMediaFromUrl } from "openclaw/plugin-sdk/outbound-media";
@@ -12,6 +9,11 @@ import type { ResolvedR2RelayAccount } from "./config.js";
 import type { AttachmentRef } from "./protocol.js";
 import type { Service } from "./service.js";
 import { emitRelayDebug, type RelayPollLog } from "./lifecycle.js";
+
+const MAX_IMAGE_BYTES = maxBytesForKind("image");
+const MAX_VIDEO_BYTES = maxBytesForKind("video");
+const MAX_AUDIO_BYTES = maxBytesForKind("audio");
+const MAX_DOCUMENT_BYTES = maxBytesForKind("document");
 
 export function resolveRelayPayloadMediaUrls(payload: {
   mediaUrl?: string | null;

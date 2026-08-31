@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { DEFAULT_ACCOUNT_ID } from "openclaw/plugin-sdk/account-id";
 import { buildJsonChannelConfigSchema } from "openclaw/plugin-sdk/channel-config-schema";
-import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import type { ChannelPlugin, OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { getPersistedRelayServerId } from "./runtime.js";
 
 export const DEFAULT_POLL_INTERVAL_MS = 5_000;
@@ -38,14 +38,15 @@ export const R2RelaySidecarConfigSchema = z.object({
   }).optional(),
 });
 
-export const r2RelayChannelConfigSchema = buildJsonChannelConfigSchema({
-  type: "object",
-  additionalProperties: false,
-  properties: {
-    enabled: { type: "boolean" },
-    configFile: { type: "string", minLength: 1 },
-  },
-});
+export const r2RelayChannelConfigSchema: NonNullable<ChannelPlugin["configSchema"]> =
+  buildJsonChannelConfigSchema({
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      enabled: { type: "boolean" },
+      configFile: { type: "string", minLength: 1 },
+    },
+  });
 
 export interface RelayTtlConfig {
   msg?: number;

@@ -4,7 +4,7 @@ import {
   collectStatusIssuesFromLastError,
 } from "openclaw/plugin-sdk/status-helpers";
 import { runPassiveAccountLifecycle } from "openclaw/plugin-sdk/channel-lifecycle";
-import type { ChannelPlugin } from "openclaw/plugin-sdk";
+import type { ChannelPlugin } from "openclaw/plugin-sdk/core";
 import {
   r2RelayChannelConfigSchema,
   resolveR2RelayAccount,

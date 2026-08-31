@@ -1,9 +1,14 @@
 import fs from "node:fs/promises";
-import { MAX_AUDIO_BYTES, MAX_DOCUMENT_BYTES, MAX_IMAGE_BYTES, MAX_VIDEO_BYTES } from "openclaw/plugin-sdk/media-runtime";
+import { maxBytesForKind } from "openclaw/plugin-sdk/media-runtime";
 import { getRelayConfig, getRelayRuntime } from "./runtime.js";
 import { IDENTITY_REFRESH_INTERVAL_MS, RELAY_PLUGIN_VERSION, Service } from "./service.js";
 import type { ResolvedR2RelayAccount } from "./config.js";
 import type { ConversationDescriptor, AgentDescriptor, ServerLimits } from "./protocol.js";
+
+const MAX_IMAGE_BYTES = maxBytesForKind("image");
+const MAX_VIDEO_BYTES = maxBytesForKind("video");
+const MAX_AUDIO_BYTES = maxBytesForKind("audio");
+const MAX_DOCUMENT_BYTES = maxBytesForKind("document");
 
 const publishedSessionSignatures = new Map<string, string>();
 const publishedIdentityAt = new Map<string, number>();
@@ -109,7 +114,8 @@ async function collectPublishedModelCapabilities(
     };
 
     for (const [key, entry] of Object.entries(cfg.agents?.defaults?.models ?? {})) {
-      addModel(key, typeof entry?.alias === "string" ? entry.alias : null);
+      const alias = (entry as { alias?: unknown } | null | undefined)?.alias;
+      addModel(key, typeof alias === "string" ? alias : null);
     }
     addModelConfig(cfg.agents?.defaults?.model);
     for (const agent of cfg.agents?.list ?? []) {

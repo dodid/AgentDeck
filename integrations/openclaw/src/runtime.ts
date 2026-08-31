@@ -4,7 +4,7 @@ import crypto from "node:crypto";
 import os from "node:os";
 import { createPluginRuntimeStore } from "openclaw/plugin-sdk/runtime-store";
 import type { PluginRuntime } from "openclaw/plugin-sdk/plugin-runtime";
-import type { OpenClawConfig } from "openclaw/plugin-sdk";
+import type { OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { PLUGIN_ID } from "./config.js";
 
 const { setRuntime: setRelayRuntime, getRuntime: getRelayRuntime } =
