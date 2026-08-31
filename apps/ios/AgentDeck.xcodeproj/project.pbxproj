@@ -41,19 +41,19 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		D4AA00032F90000100000003 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		D45F06102F757A1B0000AB40 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				D4FE9CA62F7B7804007D292B /* StoreKit.framework in Frameworks */,
 				D45F06DD2F7588920000AB40 /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D4AA00032F90000100000003 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,29 +90,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		D4AA00042F90000100000004 /* AgentDeckTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = D4AA000B2F9000010000000B /* Build configuration list for PBXNativeTarget "AgentDeckTests" */;
-			buildPhases = (
-				D4AA00052F90000100000005 /* Sources */,
-				D4AA00032F90000100000003 /* Frameworks */,
-				D4AA00062F90000100000006 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				D4AA00082F90000100000008 /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				D4AA00022F90000100000002 /* AgentDeckTests */,
-			);
-			name = AgentDeckTests;
-			packageProductDependencies = (
-			);
-			productName = AgentDeckTests;
-			productReference = D4AA00012F90000100000001 /* AgentDeckTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 		D45F06122F757A1B0000AB40 /* AgentDeck */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = D45F061E2F757A1C0000AB40 /* Build configuration list for PBXNativeTarget "AgentDeck" */;
@@ -135,6 +112,29 @@
 			productName = AgentDeck;
 			productReference = D45F06132F757A1B0000AB40 /* AgentDeck.app */;
 			productType = "com.apple.product-type.application";
+		};
+		D4AA00042F90000100000004 /* AgentDeckTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = D4AA000B2F9000010000000B /* Build configuration list for PBXNativeTarget "AgentDeckTests" */;
+			buildPhases = (
+				D4AA00052F90000100000005 /* Sources */,
+				D4AA00032F90000100000003 /* Frameworks */,
+				D4AA00062F90000100000006 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D4AA00082F90000100000008 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				D4AA00022F90000100000002 /* AgentDeckTests */,
+			);
+			name = AgentDeckTests;
+			packageProductDependencies = (
+			);
+			productName = AgentDeckTests;
+			productReference = D4AA00012F90000100000001 /* AgentDeckTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -178,7 +178,7 @@
 			mainGroup = D45F060A2F757A1B0000AB40;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */,
+				D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = D45F06142F757A1B0000AB40 /* Products */;
@@ -192,14 +192,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		D4AA00062F90000100000006 /* Resources */ = {
+		D45F06112F757A1B0000AB40 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D45F06112F757A1B0000AB40 /* Resources */ = {
+		D4AA00062F90000100000006 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -209,14 +209,14 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		D4AA00052F90000100000005 /* Sources */ = {
+		D45F060F2F757A1B0000AB40 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		D45F060F2F757A1B0000AB40 /* Sources */ = {
+		D4AA00052F90000100000005 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -234,44 +234,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		D4AA00092F90000100000009 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7CD3VWWGM3;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChatTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentDeck.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentDeck";
-			};
-			name = Debug;
-		};
-		D4AA000A2F9000010000000A /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 7CD3VWWGM3;
-				GENERATE_INFOPLIST_FILE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChatTests;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentDeck.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentDeck";
-			};
-			name = Release;
-		};
 		D45F061C2F757A1C0000AB40 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -417,7 +379,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -454,7 +416,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChat;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -467,18 +429,47 @@
 			};
 			name = Release;
 		};
+		D4AA00092F90000100000009 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7CD3VWWGM3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentDeck.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentDeck";
+			};
+			name = Debug;
+		};
+		D4AA000A2F9000010000000A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 7CD3VWWGM3;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.candiapps.ClawChatTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AgentDeck.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AgentDeck";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		D4AA000B2F9000010000000B /* Build configuration list for PBXNativeTarget "AgentDeckTests" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				D4AA00092F90000100000009 /* Debug */,
-				D4AA000A2F9000010000000A /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		D45F060E2F757A1B0000AB40 /* Build configuration list for PBXProject "AgentDeck" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -497,10 +488,19 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		D4AA000B2F9000010000000B /* Build configuration list for PBXNativeTarget "AgentDeckTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				D4AA00092F90000100000009 /* Debug */,
+				D4AA000A2F9000010000000A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */ = {
+		D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/groue/GRDB.swift.git";
 			requirement = {
@@ -513,7 +513,7 @@
 /* Begin XCSwiftPackageProductDependency section */
 		D45F06DC2F7588920000AB40 /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB" */;
+			package = D45F06DB2F7588920000AB40 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
 			productName = GRDB;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -18,7 +18,10 @@ const accessKeyId = process.env.R2_RELAY_E2E_ACCESS_KEY_ID ?? "minioadmin";
 const secretAccessKey = process.env.R2_RELAY_E2E_SECRET_ACCESS_KEY ?? "minioadmin";
 const serverId = process.env.R2_RELAY_E2E_SERVER_ID ?? `ci-openclaw-${process.env.GITHUB_RUN_ID ?? Date.now()}`;
 const clientPeer = process.env.R2_RELAY_E2E_CLIENT_PEER ?? `ci-agentdeck-${process.env.GITHUB_RUN_ID ?? Date.now()}`;
-const modelId = process.env.R2_RELAY_E2E_MODEL ?? "deepseek/deepseek-v4-flash";
+const transportOnly = process.env.R2_RELAY_E2E_MODE === "transport";
+const modelProvider = process.env.OPENROUTER_API_KEY ? "openrouter" : "deepseek";
+const modelId = process.env.R2_RELAY_E2E_MODEL
+  ?? (modelProvider === "openrouter" ? "openrouter/auto" : "deepseek/deepseek-v4-flash");
 const textCheckToken = process.env.R2_RELAY_E2E_TEXT_TOKEN ?? "TEXT-CHECK-7391";
 const imageCheckToken = process.env.R2_RELAY_E2E_IMAGE_TOKEN ?? "IMAGE-CHECK-RED";
 const fileCheckToken = process.env.R2_RELAY_E2E_FILE_TOKEN ?? "FILE-CHECK-5821";
@@ -39,9 +42,10 @@ fs.mkdirSync(path.join(home, ".openclaw"), { recursive: true });
 
 const childEnv = {
   ...process.env,
-  HOME: home,
-  OPENCLAW_HOME: path.join(home, ".openclaw"),
+  OPENCLAW_HOME: home,
+  OPENCLAW_STATE_DIR: path.join(home, ".openclaw"),
   DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY ?? "",
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY ?? "",
   NO_COLOR: "1",
   CI: "1",
 };
@@ -49,6 +53,7 @@ const childEnv = {
 function redact(value) {
   return value
     .replaceAll(process.env.DEEPSEEK_API_KEY ?? "___missing___", "<redacted:DEEPSEEK_API_KEY>")
+    .replaceAll(process.env.OPENROUTER_API_KEY ?? "___missing_openrouter___", "<redacted:OPENROUTER_API_KEY>")
     .replaceAll(webhookToken, "<redacted:R2_WEBHOOK_TOKEN>")
     .replaceAll(secretAccessKey, "<redacted:R2_SECRET_ACCESS_KEY>");
 }
@@ -91,24 +96,34 @@ async function runOpenClaw(args, options = {}) {
   return await run("openclaw", args, options);
 }
 
-async function configureDeepSeek() {
-  if (!process.env.DEEPSEEK_API_KEY) {
-    throw new Error("DEEPSEEK_API_KEY is required for the OpenClaw relay E2E.");
+async function configureModelProvider() {
+  const apiKey = modelProvider === "openrouter"
+    ? process.env.OPENROUTER_API_KEY
+    : process.env.DEEPSEEK_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENROUTER_API_KEY or DEEPSEEK_API_KEY is required for the model-backed OpenClaw relay E2E.");
   }
+  const authChoice = modelProvider === "openrouter" ? "openrouter-api-key" : "deepseek-api-key";
+  const apiKeyFlag = modelProvider === "openrouter" ? "--openrouter-api-key" : "--deepseek-api-key";
   await runOpenClaw([
     "onboard",
     "--non-interactive",
     "--mode",
     "local",
     "--auth-choice",
-    "deepseek-api-key",
-    "--deepseek-api-key",
-    process.env.DEEPSEEK_API_KEY,
+    authChoice,
+    apiKeyFlag,
+    apiKey,
     "--skip-health",
     "--accept-risk",
   ]);
-  await runOpenClaw(["models", "list", "--all", "--provider", "deepseek"], { quiet: true });
-  await runOpenClaw(["models", "set", modelId], { allowFailure: true });
+  await runOpenClaw(["models", "list", "--all", "--provider", modelProvider], { quiet: true });
+  await runOpenClaw(["models", "set", modelId]);
+}
+
+async function configureTransportOnlyHost() {
+  await runOpenClaw(["config", "set", "gateway.mode", "local"]);
+  await runOpenClaw(["config", "set", "gateway.auth.mode", "none"]);
 }
 
 async function installPlugin() {
@@ -254,8 +269,8 @@ function expandOpenClawConfigPath(value) {
   return value
     .replaceAll("$OPENCLAW_HOME", childEnv.OPENCLAW_HOME)
     .replaceAll("${OPENCLAW_HOME}", childEnv.OPENCLAW_HOME)
-    .replaceAll("$HOME", childEnv.HOME)
-    .replaceAll("${HOME}", childEnv.HOME);
+    .replaceAll("$HOME", home)
+    .replaceAll("${HOME}", home);
 }
 
 function stageFileAttachmentFixture() {
@@ -317,10 +332,10 @@ async function sendWebhookAttachmentReply(fixturePath, options = {}) {
   const url = `${resolveGatewayBaseUrl()}/r2-relay-channel/webhook/${encodeURIComponent(clientPeer)}/${encodeURIComponent("agent:main:main")}`;
   const payload = {
     text: options.text ?? webhookFileAttachmentCaption,
-    mediaUrl: fixturePath,
     jobId: options.jobId ?? "e2e-webhook-file-attachment",
     status: options.status ?? "ok",
   };
+  if (fixturePath) payload.mediaUrl = fixturePath;
   writeArtifact(options.requestArtifactName ?? "webhook-file-request.json", JSON.stringify({ url, payload }, null, 2));
   const response = await fetch(url, {
     method: "POST",
@@ -525,7 +540,11 @@ async function main() {
   await client.deletePrefix("");
 
   await runOpenClaw(["--version"], { quiet: true }).then((res) => writeArtifact("openclaw-version.txt", res.stdout));
-  await configureDeepSeek();
+  if (transportOnly) {
+    await configureTransportOnlyHost();
+  } else {
+    await configureModelProvider();
+  }
   await installPlugin();
   await configureRelayChannel();
   const fileFixture = stageFileAttachmentFixture();
@@ -543,6 +562,46 @@ async function main() {
       agent_id: "main",
       conversation_id: "agent:main:main",
     };
+
+    if (transportOnly) {
+      const beforeTextHead = (await client.collectChain(clientPeer)).head?.head_key ?? null;
+      await sendWebhookAttachmentReply(null, {
+        text: textCheckToken,
+        jobId: "e2e-transport-text",
+        requestArtifactName: "transport-text-request.json",
+        responseArtifactName: "transport-text-response.json",
+      });
+      const textReply = await collectNewAssistantReply(
+        client,
+        beforeTextHead,
+        new RegExp(textCheckToken),
+        `deterministic webhook text reply to ${clientPeer}`,
+      );
+      assertServerRelayMessage(textReply, new RegExp(textCheckToken));
+
+      const beforeAttachmentHead = (await client.collectChain(clientPeer)).head?.head_key ?? null;
+      await sendWebhookAttachmentReply(fileFixture.fixturePath, {
+        text: webhookFileAttachmentCaption,
+        jobId: "e2e-transport-attachment",
+        requestArtifactName: "transport-attachment-request.json",
+        responseArtifactName: "transport-attachment-response.json",
+      });
+      const attachmentReply = await collectNewAssistantAttachmentReply(
+        client,
+        beforeAttachmentHead,
+        new RegExp(webhookFileAttachmentCaption),
+        `deterministic webhook attachment reply to ${clientPeer}`,
+      );
+      const attachment = attachmentReply.message.content.attachments?.[0];
+      assert.ok(attachment?.key, "transport reply should include an attachment key");
+      assert.equal((await client.getObjectBuffer(attachment.key)).toString("utf8"), `${fileCheckToken}\n`);
+      writeArtifact("transport-only-success.json", JSON.stringify({
+        identity: identity.peer,
+        textMessage: textReply.message.msg_id,
+        attachmentMessage: attachmentReply.message.msg_id,
+      }, null, 2));
+      return;
+    }
 
     const beforeTextHead = (await client.collectChain(clientPeer)).head?.head_key ?? null;
     const inbound = await client.appendMessage({

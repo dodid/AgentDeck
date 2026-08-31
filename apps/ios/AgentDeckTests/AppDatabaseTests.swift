@@ -1,3 +1,4 @@
+import GRDB
 import XCTest
 @testable import AgentDeck
 
@@ -40,8 +41,19 @@ final class AppDatabaseTests: XCTestCase {
 
         try AppDatabase(databaseURL: databaseURL).upsertSessions([section])
 
+        // Released v3 databases predate GRDB's migration ledger. Removing the
+        // ledger recreates that upgrade state while retaining the real schema/data.
+        try DatabaseQueue(path: databaseURL.path).write { db in
+            try db.drop(table: "grdb_migrations")
+        }
+
         let relaunched = AppDatabase(databaseURL: databaseURL)
         XCTAssertEqual(try relaunched.sessionSections().first?.sessions.first?.id, sessionID)
         XCTAssertEqual(try relaunched.session(sessionID: sessionID)?.previewText, "persist me")
+
+        let appliedMigrations = try DatabaseQueue(path: databaseURL.path).read { db in
+            try String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations ORDER BY identifier")
+        }
+        XCTAssertEqual(appliedMigrations, ["v3-baseline"])
     }
 }

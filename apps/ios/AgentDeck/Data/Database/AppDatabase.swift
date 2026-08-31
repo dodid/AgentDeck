@@ -242,7 +242,7 @@ struct MessageAttachmentRecord: Codable, FetchableRecord, PersistableRecord, Sen
     }
 }
 
-final class AppDatabase: @unchecked Sendable {
+nonisolated final class AppDatabase: @unchecked Sendable {
     private let dbQueue: DatabaseQueue
     private let dbURL: URL
 
@@ -257,11 +257,16 @@ final class AppDatabase: @unchecked Sendable {
         var configuration = Configuration()
         configuration.foreignKeysEnabled = true
         self.dbQueue = try! DatabaseQueue(path: dbURL.path, configuration: configuration)
-        try? createSchema()
+        do {
+            try createSchema()
+        } catch {
+            preconditionFailure("Unable to initialize AgentDeck database: \(error)")
+        }
     }
 
     private func createSchema() throws {
-        try dbQueue.write { db in
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v3-baseline") { db in
             try db.create(table: "gateways", ifNotExists: true) { t in
                 t.column("gateway_id", .text).notNull().primaryKey()
                 t.column("display_name", .text).notNull()
@@ -343,6 +348,7 @@ final class AppDatabase: @unchecked Sendable {
                 t.column("updated_at_ms", .integer).notNull()
             }
         }
+        try migrator.migrate(dbQueue)
     }
 
     func upsertSessions(_ sections: [GatewaySection]) throws -> [SessionID] {

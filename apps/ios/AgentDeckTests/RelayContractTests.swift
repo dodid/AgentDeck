@@ -61,4 +61,49 @@ final class RelayContractTests: XCTestCase {
         let result = try await service.collectInboxMessages(clientID: recipient, lastSeenKey: nil)
         XCTAssertEqual(result.messages.map(\.message.msgID), [messageID])
     }
+
+    func testLivePlatformInteropWhenConfigured() async throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard let endpoint = environment["AGENTDECK_TEST_R2_ENDPOINT"],
+              let bucket = environment["AGENTDECK_TEST_R2_BUCKET"],
+              let accessKeyID = environment["AGENTDECK_TEST_R2_ACCESS_KEY_ID"],
+              let secretAccessKey = environment["AGENTDECK_TEST_R2_SECRET_ACCESS_KEY"],
+              let expectedSoftwareID = environment["AGENTDECK_TEST_PLATFORM"],
+              let expectedServerID = environment["AGENTDECK_TEST_SERVER_ID"],
+              let clientID = environment["AGENTDECK_TEST_CLIENT_PEER"] else {
+            throw XCTSkip("Platform interop is enabled only by the release-candidate workflow.")
+        }
+        let config = ConnectionConfig(
+            endpoint: endpoint,
+            bucket: bucket,
+            accessKeyID: accessKeyID,
+            secretAccessKey: secretAccessKey,
+            region: "us-east-1",
+            forcePathStyle: true
+        )
+
+        let sections = try await RelayDiscoveryService(config: config).discoverGateways()
+        let gateway = try XCTUnwrap(sections.first(where: { $0.gateway.id.rawValue == expectedServerID }))
+        XCTAssertEqual(gateway.gateway.softwareID, expectedSoftwareID)
+        XCTAssertEqual(gateway.gateway.protocolVersion, 3)
+
+        let messaging = RelayMessagingService(config: config)
+        let serverOutput = try await messaging.collectInboxMessages(clientID: clientID, lastSeenKey: nil)
+        XCTAssertTrue(serverOutput.messages.contains(where: {
+            $0.message.from == expectedServerID && $0.message.to == clientID
+        }))
+
+        let messageID = "ios-interop-\(UUID().uuidString.lowercased())"
+        _ = try await messaging.sendMessage(
+            from: clientID,
+            target: RelaySendTarget(
+                gatewayPeer: expectedServerID,
+                route: RelayRoute(agentID: "main", conversationID: "agent:main:main", instanceID: nil)
+            ),
+            text: "AgentDeck iOS interop",
+            messageID: messageID
+        )
+        let platformInbox = try await messaging.collectInboxMessages(clientID: expectedServerID, lastSeenKey: nil)
+        XCTAssertTrue(platformInbox.messages.contains(where: { $0.message.msgID == messageID }))
+    }
 }

@@ -15,7 +15,7 @@ AgentDeck is a monorepo containing an iOS client, a host-neutral relay contract,
 - `Features/` contains screen views and view models.
 - `UI/` contains shared navigation and theme components.
 
-R2 credentials are stored in Keychain. Messages, sessions, attachment metadata, and derived presentation state are stored locally with GRDB.
+R2 credentials are stored in Keychain. Messages, sessions, attachment metadata, and derived presentation state are stored locally with GRDB. Database creation uses named GRDB migrations so existing app containers can be advanced by future schema changes instead of relying on fresh installation.
 
 ### Relay contract
 

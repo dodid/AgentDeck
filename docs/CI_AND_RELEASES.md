@@ -11,33 +11,37 @@ AgentDeck uses secretless GitHub-hosted CI for routine verification and Xcode Cl
 - repository safety and compatibility-manifest checks;
 - vendored transport drift checks;
 - relay-core TypeScript and Python tests;
-- OpenClaw tests against the committed dependency version;
-- Hermes tests against the commit in `compatibility.json`.
+- OpenClaw tests against the committed dependency version, followed by packaged fresh-install, upgrade, uninstall, and reinstall checks;
+- Hermes tests against the commit in `compatibility.json`, followed by the same packaged lifecycle checks in an isolated Hermes home.
 
 ### iOS CI
 
-`.github/workflows/ios.yml` runs unsigned builds and XCTest on a GitHub-hosted macOS runner.
+`.github/workflows/ios.yml` runs unsigned builds and XCTest serially on a GitHub-hosted macOS runner. It then installs the built app into a clean simulator, reinstalls it over the existing container to prove upgrade persistence, and uninstalls/reinstalls it to prove a clean bootstrap.
 
 ### Upstream canary
 
-`.github/workflows/upstream-canary.yml` runs daily against the current OpenClaw package and the Hermes default branch. A failure opens or updates a GitHub issue. The canary reports compatibility drift but does not modify code or deploy anything.
+`.github/workflows/upstream-canary.yml` runs daily against the current OpenClaw package and the Hermes default branch. Each lane exercises a real packaged installation and a deterministic relay round trip through disposable MinIO. A failure opens or updates a GitHub issue. When both lanes pass, the scheduled run may update the tested revisions on a review-only compatibility pull request; it cannot merge or deploy the change.
 
 ### Release-candidate validation
 
-`.github/workflows/release-candidate.yml` is manually dispatched. It starts a disposable MinIO service, validates the selected platform integration, and runs unsigned iOS tests against the temporary S3-compatible endpoint. Test results and MinIO diagnostics are uploaded as workflow artifacts.
+`.github/workflows/release-candidate.yml` is manually dispatched. It starts a disposable MinIO service, validates the selected installed platform integration, runs the iOS contract suite against the platform-produced relay objects, and checks simulator install/upgrade behavior. Test results and redacted diagnostics are uploaded as workflow artifacts.
+
+### Optional model-backed E2E
+
+`.github/workflows/model-e2e.yml` runs twice weekly and on demand. If the repository Actions secret `OPENROUTER_API_KEY` exists, it sends text and attachment turns through the latest OpenClaw runtime and a real OpenRouter model. Set the non-secret repository Actions variable `OPENROUTER_MODEL` to an OpenClaw model identifier such as `openrouter/openai/gpt-5.2-chat`; when it is absent, the workflow uses `openrouter/auto`. If the API-key secret is absent, this optional job reports a skip without weakening deterministic required checks.
 
 ## Security boundaries
 
 GitHub workflows use read-only repository permissions by default. Pull-request code receives no production credentials, Apple signing material, App Store Connect keys, model-provider keys, or persistent infrastructure access.
 
-Workflows that execute contribution code use `pull_request`, never `pull_request_target`.
+Workflows that execute contribution code use `pull_request`, never `pull_request_target`. The scheduled compatibility updater has narrowly scoped write permission and only creates or refreshes a pull request after both upstream canaries pass.
 
 ## Dependencies
 
 - Lockfiles define the required pull-request baseline.
 - Dependabot proposes GitHub Actions, npm, pip, and SwiftPM updates.
 - Related AWS S3 JavaScript packages are grouped so their Smithy types remain aligned.
-- The scheduled canary tests newer platform versions without changing lockfiles.
+- The scheduled canary tests newer platform versions and proposes reviewed lockfile and compatibility updates only after those tests pass.
 
 Dependency updates are merged only after the relevant checks pass.
 

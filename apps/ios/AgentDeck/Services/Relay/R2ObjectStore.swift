@@ -112,7 +112,12 @@ final class R2S3ObjectStore: R2ObjectStore, @unchecked Sendable {
         guard var components = URLComponents(url: endpoint, resolvingAgainstBaseURL: false), let host = components.host else {
             throw R2ObjectStoreError.invalidEndpoint
         }
-        let encodedKey = key.map(Self.encodePath) ?? ""
+        let encodedKey: String
+        if let key {
+            encodedKey = Self.encodePath(key)
+        } else {
+            encodedKey = ""
+        }
         if forcePathStyle {
             let basePath = components.percentEncodedPath.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
             components.percentEncodedPath = "/" + [basePath, Self.encodePath(bucket), encodedKey].filter { !$0.isEmpty }.joined(separator: "/")

@@ -9,7 +9,7 @@ struct SessionDisplayLabel: Equatable, Sendable {
     let primary: String
     let secondary: String?
 
-    var plainText: String {
+    nonisolated var plainText: String {
         guard let secondary, !secondary.isEmpty else { return primary }
         return primary + " " + secondary
     }
@@ -29,15 +29,15 @@ struct ChatSession: Equatable, Identifiable, Sendable {
 }
 
 extension ChatSession {
-    var isFreeMainAgentSession: Bool {
+    nonisolated var isFreeMainAgentSession: Bool {
         agentID == "main"
     }
 
-    var requiresAgentSubscription: Bool {
+    nonisolated var requiresAgentSubscription: Bool {
         !isFreeMainAgentSession
     }
 
-    func displayLabelParts(gatewayDisplayName _: String?) -> SessionDisplayLabel {
+    nonisolated func displayLabelParts(gatewayDisplayName _: String?) -> SessionDisplayLabel {
         let trimmedLocalTitle = localTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if let title = trimmedLocalTitle, !title.isEmpty {
@@ -52,7 +52,7 @@ extension ChatSession {
         )
     }
 
-    func displayLabel(gatewayDisplayName _: String?) -> String {
+    nonisolated func displayLabel(gatewayDisplayName _: String?) -> String {
         displayLabelParts(gatewayDisplayName: nil).plainText
     }
 }

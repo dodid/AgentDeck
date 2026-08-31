@@ -58,10 +58,20 @@ jobs:
       - name: Validate current OpenClaw integration
         if: matrix.platform == 'openclaw'
         working-directory: integrations/openclaw
+        env:
+          R2_RELAY_E2E_MODE: transport
+          R2_RELAY_E2E_ENDPOINT: http://127.0.0.1:9000
+          R2_RELAY_E2E_BUCKET: agentdeck-${{ matrix.platform }}-${{ github.run_id }}
+          R2_RELAY_E2E_ACCESS_KEY_ID: minioadmin
+          R2_RELAY_E2E_SECRET_ACCESS_KEY: minioadmin
+          R2_RELAY_E2E_SERVER_ID: release-openclaw
+          R2_RELAY_E2E_CLIENT_PEER: agentdeck-ci
+          R2_RELAY_E2E_ARTIFACTS_DIR: ${{ runner.temp }}/openclaw-e2e
         run: |
           npm ci
           npm install --no-save openclaw@latest
           npm test
+          npm run e2e:transport
 
       - name: Check out current Hermes
         if: matrix.platform == 'hermes'
@@ -80,10 +90,20 @@ jobs:
         env:
           PYTHONPATH: ${{ github.workspace }}/vendor/hermes-agent
           HERMES_HOME: ${{ runner.temp }}/hermes-home
+          AGENTDECK_TEST_R2_ENDPOINT: http://127.0.0.1:9000
+          AGENTDECK_TEST_R2_BUCKET: agentdeck-${{ matrix.platform }}-${{ github.run_id }}
+          AGENTDECK_TEST_R2_ACCESS_KEY_ID: minioadmin
+          AGENTDECK_TEST_R2_SECRET_ACCESS_KEY: minioadmin
+          AGENTDECK_TEST_CLIENT_PEER: agentdeck-ci
         working-directory: integrations/hermes
         run: |
           python -m pip install -e '.[dev]'
           python -m pytest -q
+      - name: Validate packaged Hermes lifecycle
+        if: matrix.platform == 'hermes'
+        env:
+          AGENTDECK_LIFECYCLE_ARTIFACTS: ${{ runner.temp }}/hermes-lifecycle
+        run: tools/maintenance/hermes-plugin-lifecycle.sh vendor/hermes-agent
 
       - name: Select current Xcode
         run: sudo xcode-select -s /Applications/Xcode.app
@@ -103,15 +123,25 @@ jobs:
           AGENTDECK_TEST_R2_BUCKET: agentdeck-${{ matrix.platform }}-${{ github.run_id }}
           AGENTDECK_TEST_R2_ACCESS_KEY_ID: minioadmin
           AGENTDECK_TEST_R2_SECRET_ACCESS_KEY: minioadmin
+          AGENTDECK_TEST_PLATFORM: ${{ matrix.platform }}
+          AGENTDECK_TEST_SERVER_ID: ${{ matrix.platform == 'openclaw' && 'release-openclaw' || 'hermes-live' }}
+          AGENTDECK_TEST_CLIENT_PEER: agentdeck-ci
         run: |
           set -o pipefail
           xcodebuild test \
             -project AgentDeck.xcodeproj \
             -scheme AgentDeck \
             -skipPackagePluginValidation \
+            -derivedDataPath '${{ runner.temp }}/AgentDeckDerivedData-${{ matrix.platform }}' \
             -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
+            -parallel-testing-enabled NO \
             -resultBundlePath 'ReleaseCandidate-${{ matrix.platform }}.xcresult' \
             CODE_SIGNING_ALLOWED=NO
+      - name: Verify iOS fresh install and upgrade persistence
+        run: |
+          tools/maintenance/ios-simulator-lifecycle.sh \
+            '${{ steps.simulator.outputs.id }}' \
+            '${{ runner.temp }}/AgentDeckDerivedData-${{ matrix.platform }}/Build/Products/Debug-iphonesimulator/AgentDeck.app'
       - name: Upload release-candidate diagnostics
         if: always()
         uses: actions/upload-artifact@v7
@@ -120,4 +150,6 @@ jobs:
           path: |
             apps/ios/ReleaseCandidate-${{ matrix.platform }}.xcresult
             ${{ runner.temp }}/minio.log
+            ${{ runner.temp }}/openclaw-e2e
+            ${{ runner.temp }}/hermes-lifecycle
           if-no-files-found: ignore

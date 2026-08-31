@@ -39,9 +39,16 @@ jobs:
           xcodebuild test \
             -project AgentDeck.xcodeproj \
             -scheme AgentDeck \
+            -derivedDataPath '${{ runner.temp }}/AgentDeckDerivedData' \
             -destination 'platform=iOS Simulator,id=${{ steps.simulator.outputs.id }}' \
+            -parallel-testing-enabled NO \
             -resultBundlePath TestResults.xcresult \
             CODE_SIGNING_ALLOWED=NO
+      - name: Verify simulator fresh install and upgrade persistence
+        run: |
+          ../../tools/maintenance/ios-simulator-lifecycle.sh \
+            '${{ steps.simulator.outputs.id }}' \
+            '${{ runner.temp }}/AgentDeckDerivedData/Build/Products/Debug-iphonesimulator/AgentDeck.app'
       - name: Upload XCTest results
         if: always()
         uses: actions/upload-artifact@v7

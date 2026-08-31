@@ -1,0 +1,82 @@
+name: Model-backed platform E2E
+
+on:
+  schedule:
+    - cron: "43 6 * * 2,5"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: model-backed-platform-e2e
+  cancel-in-progress: false
+
+jobs:
+  openclaw_openrouter:
+    name: OpenClaw with OpenRouter
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      NPM_CONFIG_AUDIT: "false"
+      NPM_CONFIG_FUND: "false"
+      NPM_CONFIG_UPDATE_NOTIFIER: "false"
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    steps:
+      - uses: actions/checkout@v7
+      - id: secret
+        name: Check optional OpenRouter secret
+        run: |
+          if [[ -n "$OPENROUTER_API_KEY" ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "OPENROUTER_API_KEY is not configured; skipping the optional model-backed check."
+          fi
+      - uses: actions/setup-node@v7
+        if: steps.secret.outputs.available == 'true'
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: integrations/openclaw/package-lock.json
+      - name: Start disposable MinIO
+        if: steps.secret.outputs.available == 'true'
+        run: |
+          docker run --detach --rm \
+            --name agentdeck-model-minio \
+            --publish 9000:9000 \
+            --env MINIO_ROOT_USER \
+            --env MINIO_ROOT_PASSWORD \
+            minio/minio server /data
+          for _ in {1..60}; do
+            if curl -fsS http://127.0.0.1:9000/minio/health/live >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          exit 1
+      - name: Run real model relay conversation
+        if: steps.secret.outputs.available == 'true'
+        working-directory: integrations/openclaw
+        env:
+          R2_RELAY_E2E_ENDPOINT: http://127.0.0.1:9000
+          R2_RELAY_E2E_BUCKET: agentdeck-model-${{ github.run_id }}
+          R2_RELAY_E2E_ACCESS_KEY_ID: minioadmin
+          R2_RELAY_E2E_SECRET_ACCESS_KEY: minioadmin
+          R2_RELAY_E2E_SERVER_ID: model-openclaw
+          R2_RELAY_E2E_CLIENT_PEER: model-agentdeck
+          R2_RELAY_E2E_MODEL: ${{ vars.OPENROUTER_MODEL || 'openrouter/auto' }}
+          R2_RELAY_E2E_ARTIFACTS_DIR: ${{ runner.temp }}/model-e2e
+        run: |
+          npm ci
+          npm install --no-save openclaw@latest
+          npm run e2e:openclaw
+      - name: Upload redacted model E2E diagnostics
+        if: always() && steps.secret.outputs.available == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: openclaw-openrouter-e2e
+          path: ${{ runner.temp }}/model-e2e
+          if-no-files-found: ignore

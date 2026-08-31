@@ -13,6 +13,8 @@
   "scripts": {
     "build": "node scripts/check-openclaw-version.mjs && tsc -p tsconfig.json && node scripts/prepare-dist.mjs",
     "test": "npm run build && node --test dist/*.test.js",
+    "test:lifecycle": "node ../../tools/maintenance/openclaw-plugin-lifecycle.mjs",
+    "e2e:transport": "R2_RELAY_E2E_MODE=transport node e2e/run-openclaw-e2e.mjs",
     "e2e:openclaw": "node e2e/run-openclaw-e2e.mjs",
     "lint": "echo 'no-lint-config'",
     "pack": "npm pack"

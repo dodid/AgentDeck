@@ -65,7 +65,7 @@ jobs:
 
   openclaw-pinned:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     defaults:
       run:
         working-directory: integrations/openclaw
@@ -78,10 +78,21 @@ jobs:
           cache-dependency-path: integrations/openclaw/package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Exercise packaged fresh install, upgrade, and reinstall
+        env:
+          AGENTDECK_LIFECYCLE_ARTIFACTS: ${{ runner.temp }}/openclaw-lifecycle
+        run: npm run test:lifecycle
+      - name: Upload OpenClaw lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: openclaw-pinned-lifecycle
+          path: ${{ runner.temp }}/openclaw-lifecycle
+          if-no-files-found: ignore
 
   hermes-pinned:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v7
       - name: Read tested Hermes revision
@@ -105,3 +116,14 @@ jobs:
           HERMES_HOME: ${{ runner.temp }}/hermes-home
         working-directory: integrations/hermes
         run: python -m pytest -q
+      - name: Exercise packaged fresh install, upgrade, and reinstall
+        env:
+          AGENTDECK_LIFECYCLE_ARTIFACTS: ${{ runner.temp }}/hermes-lifecycle
+        run: tools/maintenance/hermes-plugin-lifecycle.sh vendor/hermes-agent
+      - name: Upload Hermes lifecycle diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: hermes-pinned-lifecycle
+          path: ${{ runner.temp }}/hermes-lifecycle
+          if-no-files-found: ignore
