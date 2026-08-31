@@ -130,6 +130,18 @@ async function configureTransportOnlyHost() {
   await runOpenClaw(["config", "set", "gateway.auth.mode", "none"]);
 }
 
+async function disableUnrelatedBundledPlugins() {
+  // OpenClaw 2026.8 enables this optional bundled plugin during first-run setup,
+  // but leaves its capabilities unapproved. Keep the isolated E2E host focused
+  // on the plugin under test instead of granting unrelated capabilities.
+  const result = await runOpenClaw(["plugins", "disable", "perplexity"], {
+    allowFailure: true,
+  });
+  if (result.code !== 0) {
+    console.log("Optional bundled plugin perplexity is not present; continuing.");
+  }
+}
+
 async function installPlugin() {
   const installFlags = ["--force", "--dangerously-force-unsafe-install", "--accept-capabilities"];
   const installSpec = process.env.R2_RELAY_E2E_PLUGIN_SPEC;
@@ -549,6 +561,7 @@ async function main() {
   } else {
     await configureModelProvider();
   }
+  await disableUnrelatedBundledPlugins();
   await installPlugin();
   await configureRelayChannel();
   const fileFixture = stageFileAttachmentFixture();
