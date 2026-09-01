@@ -134,12 +134,13 @@ async function disableUnrelatedBundledPlugins() {
   // OpenClaw 2026.8 enables this optional bundled plugin during first-run setup,
   // but leaves its capabilities unapproved. Keep the isolated E2E host focused
   // on the plugin under test instead of granting unrelated capabilities.
-  const result = await runOpenClaw(["plugins", "disable", "perplexity"], {
-    allowFailure: true,
-  });
-  if (result.code !== 0) {
-    console.log("Optional bundled plugin perplexity is not present; continuing.");
-  }
+  await runOpenClaw([
+    "config",
+    "set",
+    "plugins.entries.perplexity.enabled",
+    "false",
+    "--strict-json",
+  ]);
 }
 
 async function installPlugin() {
