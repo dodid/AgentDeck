@@ -80,7 +80,11 @@ function inspectPlugin() {
 }
 
 function install(packagePath) {
-  runOpenClaw(["plugins", "install", packagePath, "--force"], { capture: false });
+  const installArgs = ["plugins", "install", packagePath, "--force"];
+  if (runOpenClaw(["plugins", "install", "--help"]).includes("--accept-capabilities")) {
+    installArgs.push("--accept-capabilities");
+  }
+  runOpenClaw(installArgs, { capture: false });
   inspectPlugin();
 }
 
