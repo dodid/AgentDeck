@@ -8,7 +8,7 @@
   "capabilities": {
     "messaging": { "text": true, "streaming": true, "reactions": false, "system_events": false },
     "conversations": { "list": true, "create": false, "reset": false, "archive": false, "threading": true },
-    "agents": { "list": false, "multiple": false, "switch": false, "per_agent_models": false },
+    "agents": { "list": true, "multiple": false, "switch": false, "per_agent_models": false },
     "attachments": {
       "supported": true,
       "kinds": ["image", "video", "audio", "file"],

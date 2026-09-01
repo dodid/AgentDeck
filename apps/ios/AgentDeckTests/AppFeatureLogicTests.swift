@@ -78,6 +78,6 @@ final class AppFeatureLogicTests: XCTestCase {
             unreadCount: 0,
             source: nil
         )
-        XCTAssertEqual(secondary.displayLabel(gatewayDisplayName: nil), "research thread-42")
+        XCTAssertEqual(secondary.displayLabel(gatewayDisplayName: nil), "Research")
     }
 }

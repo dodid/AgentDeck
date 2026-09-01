@@ -30,6 +30,44 @@ final class RelayDiscoveryServiceTests: XCTestCase {
         XCTAssertEqual(sections.map(\.gateway.id.rawValue), ["fresh-server"])
         XCTAssertEqual(sections.first?.gateway.defaultModelID, "provider/model")
         XCTAssertEqual(sections.first?.sessions.map(\.id.rawValue), ["fresh-server::main::agent:main:main"])
+        XCTAssertEqual(sections.first?.sessions.first?.kind, .agentEntrypoint)
+        XCTAssertEqual(sections.first?.sessions.first?.capabilities?.attachments?.supported, true)
+    }
+
+    func testDiscoveryRepresentsPublishedConversationAndPreservesSource() async throws {
+        let store = TestObjectStore()
+        let route = RelayRoute(agentID: "main", conversationID: "agent:main:telegram:direct:user-1", instanceID: "epoch-1")
+        let conversation = RemoteConversationDescriptor(
+            id: "agent:main:telegram:direct:user-1",
+            displayTitle: "Alice",
+            route: route,
+            source: RemoteConversationSource(
+                channel: "telegram",
+                chatKind: "dm",
+                accountID: nil,
+                accountDisplay: nil,
+                spaceID: nil,
+                spaceDisplay: nil,
+                chatID: nil,
+                chatDisplay: nil,
+                participantID: "user-1",
+                participantDisplay: "Alice",
+                threadID: nil,
+                threadDisplay: nil,
+                sharing: "private"
+            ),
+            updatedAt: Date().timeIntervalSince1970 * 1000
+        )
+        try await store.seedJSON(
+            makeTestIdentity(peer: "server", conversations: [conversation]),
+            key: "identity/server.json"
+        )
+
+        let sections = try await RelayDiscoveryService(store: store).discoverGateways()
+        let session = try XCTUnwrap(sections.first?.sessions.first)
+        XCTAssertEqual(session.kind, .conversation)
+        XCTAssertEqual(session.source?.channel, "telegram")
+        XCTAssertEqual(session.displayLabel(gatewayDisplayName: nil), "Alice telegram")
     }
 
     func testDiscoveryRejectsOnlyUnsupportedIdentities() async throws {

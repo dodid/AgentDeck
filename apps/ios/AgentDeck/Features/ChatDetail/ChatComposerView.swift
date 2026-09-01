@@ -121,6 +121,9 @@ struct ChatComposerView: View {
                 .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: -1)
         }
         .buttonStyle(.plain)
+        .disabled(!viewModel.supportsAttachments)
+        .opacity(viewModel.supportsAttachments ? 1 : 0.42)
+        .accessibilityHint(viewModel.supportsAttachments ? "" : String(localized: "Attachments are not supported by this session."))
     }
 
     private func attachmentIcon(for kind: AttachmentKind) -> String {

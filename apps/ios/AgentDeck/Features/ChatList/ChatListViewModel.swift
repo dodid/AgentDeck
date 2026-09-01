@@ -46,9 +46,14 @@ final class ChatListViewModel {
                 ChatListRowViewData(
                     id: session.id,
                     title: session.displayLabelParts(gatewayDisplayName: section.gateway.displayName),
-                    previewText: session.previewText.isEmpty ? String(localized: "No recent message") : session.previewText,
+                    previewText: session.previewText.isEmpty
+                        ? (session.kind == .agentEntrypoint
+                            ? String(localized: "Start a new conversation")
+                            : String(localized: "No recent message"))
+                        : session.previewText,
                     timestampText: timestampText(for: session.updatedAt),
-                    unreadCount: session.unreadCount
+                    unreadCount: session.unreadCount,
+                    kind: session.kind
                 )
             }
         )

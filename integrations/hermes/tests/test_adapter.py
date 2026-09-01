@@ -81,6 +81,8 @@ async def test_connect_publishes_strict_v3_identity(relay_env):
     assert identity["agents"][0]["default_route"] == {"agent_id": "main"}
     assert identity["conversations"][0]["source"]["chat_kind"] == "dm"
     assert identity["capabilities"]["messaging"]["reactions"] is False
+    assert identity["capabilities"]["attachments"]["supported"] is True
+    assert identity["capabilities"]["approvals"] is None
     await adapter.disconnect()
 
 

@@ -83,6 +83,20 @@ def test_format_inbound_text_formats_stream_snapshot():
     assert text == '[stream stream-1 partial #2] partial answer'
 
 
+def test_format_inbound_text_translates_approval_response_to_hermes_command():
+    text = format_inbound_text(
+        {
+            'content': {
+                'type': 'approval_response',
+                'approval_id': 'approval-1',
+                'decision': 'allow-once',
+            },
+        }
+    )
+
+    assert text == '/approve approval-1 allow-once'
+
+
 def test_infer_message_type_uses_first_attachment_content_type():
     message_type = infer_message_type([
         {

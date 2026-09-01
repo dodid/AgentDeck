@@ -12,6 +12,22 @@ final class AppDatabaseTests: XCTestCase {
 
         let gatewayID = GatewayID(rawValue: "openclaw-primary")
         let sessionID = SessionID(rawValue: "openclaw-primary::main::agent:main:main")
+        let capabilities = makeTestIdentity(peer: "capabilities").capabilities
+        let source = RemoteConversationSource(
+            channel: "telegram",
+            chatKind: "dm",
+            accountID: nil,
+            accountDisplay: nil,
+            spaceID: nil,
+            spaceDisplay: nil,
+            chatID: nil,
+            chatDisplay: nil,
+            participantID: "user-1",
+            participantDisplay: "Alice",
+            threadID: nil,
+            threadDisplay: nil,
+            sharing: "private"
+        )
         let section = GatewaySection(
             id: gatewayID,
             gateway: Gateway(
@@ -23,7 +39,8 @@ final class AppDatabaseTests: XCTestCase {
                 protocolVersion: 3,
                 lastSeenAt: Date(),
                 availableModels: [],
-                defaultModelID: nil
+                defaultModelID: nil,
+                capabilities: capabilities
             ),
             sessions: [ChatSession(
                 id: sessionID,
@@ -35,7 +52,9 @@ final class AppDatabaseTests: XCTestCase {
                 previewText: "persist me",
                 updatedAt: Date(),
                 unreadCount: 0,
-                source: nil
+                source: source,
+                kind: .agentEntrypoint,
+                capabilities: capabilities
             )]
         )
 
@@ -49,11 +68,16 @@ final class AppDatabaseTests: XCTestCase {
 
         let relaunched = AppDatabase(databaseURL: databaseURL)
         XCTAssertEqual(try relaunched.sessionSections().first?.sessions.first?.id, sessionID)
-        XCTAssertEqual(try relaunched.session(sessionID: sessionID)?.previewText, "persist me")
+        let persistedSession = try relaunched.session(sessionID: sessionID)
+        XCTAssertEqual(persistedSession?.previewText, "persist me")
+        XCTAssertEqual(persistedSession?.kind, .agentEntrypoint)
+        XCTAssertEqual(persistedSession?.source?.participantDisplay, "Alice")
+        XCTAssertEqual(persistedSession?.capabilities?.attachments?.supported, true)
+        XCTAssertEqual(try relaunched.sessionSections().first?.gateway.capabilities?.approvals?.exec, true)
 
         let appliedMigrations = try DatabaseQueue(path: databaseURL.path).read { db in
             try String.fetchAll(db, sql: "SELECT identifier FROM grdb_migrations ORDER BY identifier")
         }
-        XCTAssertEqual(appliedMigrations, ["v3-baseline"])
+        XCTAssertEqual(appliedMigrations, ["v3-baseline", "v3-session-capabilities"])
     }
 }

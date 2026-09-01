@@ -89,8 +89,12 @@ struct RelayDiscoveryService {
             protocolVersion: doc.protocol_.version,
             lastSeenAt: decodedDate(from: doc.lastSeen),
             availableModels: models,
-            defaultModelID: defaultModelID
+            defaultModelID: defaultModelID,
+            capabilities: doc.capabilities
         )
+        let agentCapabilities = Dictionary(uniqueKeysWithValues: doc.agents.compactMap { agent in
+            agent.capabilities.map { (agent.id, $0) }
+        })
         let conversationSessions = doc.conversations.map { conversation in
             ChatSession(
                 id: SessionID(rawValue: "\(doc.peer)::\(conversation.route.agentID)::\(conversation.route.conversationID ?? "default")"),
@@ -102,7 +106,9 @@ struct RelayDiscoveryService {
                 previewText: "",
                 updatedAt: decodedDate(from: conversation.updatedAt),
                 unreadCount: 0,
-                source: conversation.source
+                source: conversation.source,
+                kind: .conversation,
+                capabilities: agentCapabilities[conversation.route.agentID] ?? doc.capabilities
             )
         }
         var sessionsByID: [String: ChatSession] = [:]
@@ -124,7 +130,9 @@ struct RelayDiscoveryService {
                 previewText: "",
                 updatedAt: nil,
                 unreadCount: 0,
-                source: nil
+                source: nil,
+                kind: .agentEntrypoint,
+                capabilities: agent.capabilities ?? doc.capabilities
             )
         }
 

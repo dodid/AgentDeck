@@ -170,13 +170,13 @@ export class Service {
       software: { id: "openclaw", name: "OpenClaw", version: RELAY_PLUGIN_VERSION },
       protocol: { name: "r2-relay", version: 3 },
       capabilities: {
-        messaging: { text: true, streaming: true, reactions: true, system_events: true },
+        messaging: { text: true, streaming: true, reactions: true, system_events: false },
         conversations: { list: true, create: false, reset: false, archive: false, threading: false },
         agents: { list: true, multiple: true, switch: true, per_agent_models: false },
         attachments: null,
         approvals: {
           exec: true,
-          tool: false,
+          tool: true,
           custom: false,
         },
         extensions: null,

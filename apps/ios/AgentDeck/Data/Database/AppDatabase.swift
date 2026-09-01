@@ -13,6 +13,7 @@ struct GatewayRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     var lastSeenMS: Int64?
     var availableModelsJSON: String
     var defaultModelID: String?
+    var capabilitiesJSON: String?
     var modifiedAtMS: Int64
 
     enum Columns: String, ColumnExpression {
@@ -25,6 +26,7 @@ struct GatewayRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         case lastSeenMS = "last_seen_ms"
         case availableModelsJSON = "available_models_json"
         case defaultModelID = "default_model_id"
+        case capabilitiesJSON = "capabilities_json"
         case modifiedAtMS = "modified_at_ms"
     }
 
@@ -38,6 +40,7 @@ struct GatewayRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         case lastSeenMS = "last_seen_ms"
         case availableModelsJSON = "available_models_json"
         case defaultModelID = "default_model_id"
+        case capabilitiesJSON = "capabilities_json"
         case modifiedAtMS = "modified_at_ms"
     }
 }
@@ -54,6 +57,9 @@ struct SessionRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     var previewText: String
     var updatedAtMS: Int64?
     var unreadCount: Int
+    var sourceJSON: String?
+    var kind: String
+    var capabilitiesJSON: String?
     var createdAtMS: Int64
     var modifiedAtMS: Int64
 
@@ -67,6 +73,9 @@ struct SessionRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         case previewText = "preview_text"
         case updatedAtMS = "updated_at_ms"
         case unreadCount = "unread_count"
+        case sourceJSON = "source_json"
+        case kind
+        case capabilitiesJSON = "capabilities_json"
         case createdAtMS = "created_at_ms"
         case modifiedAtMS = "modified_at_ms"
     }
@@ -81,6 +90,9 @@ struct SessionRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
         case previewText = "preview_text"
         case updatedAtMS = "updated_at_ms"
         case unreadCount = "unread_count"
+        case sourceJSON = "source_json"
+        case kind
+        case capabilitiesJSON = "capabilities_json"
         case createdAtMS = "created_at_ms"
         case modifiedAtMS = "modified_at_ms"
     }
@@ -277,6 +289,7 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                 t.column("last_seen_ms", .integer)
                 t.column("available_models_json", .text).notNull().defaults(to: "[]")
                 t.column("default_model_id", .text)
+                t.column("capabilities_json", .text)
                 t.column("modified_at_ms", .integer).notNull()
             }
 
@@ -290,6 +303,9 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                 t.column("preview_text", .text).notNull().defaults(to: "")
                 t.column("updated_at_ms", .integer)
                 t.column("unread_count", .integer).notNull().defaults(to: 0)
+                t.column("source_json", .text)
+                t.column("kind", .text).notNull().defaults(to: ChatSessionKind.conversation.rawValue)
+                t.column("capabilities_json", .text)
                 t.column("created_at_ms", .integer).notNull()
                 t.column("modified_at_ms", .integer).notNull()
             }
@@ -348,6 +364,27 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                 t.column("updated_at_ms", .integer).notNull()
             }
         }
+        migrator.registerMigration("v3-session-capabilities") { db in
+            let gatewayColumns = Set(try db.columns(in: "gateways").map(\.name))
+            if !gatewayColumns.contains("capabilities_json") {
+                try db.alter(table: "gateways") { $0.add(column: "capabilities_json", .text) }
+            }
+
+            let sessionColumns = Set(try db.columns(in: "sessions").map(\.name))
+            if !sessionColumns.isSuperset(of: ["source_json", "kind", "capabilities_json"]) {
+                try db.alter(table: "sessions") { table in
+                    if !sessionColumns.contains("source_json") {
+                        table.add(column: "source_json", .text)
+                    }
+                    if !sessionColumns.contains("kind") {
+                        table.add(column: "kind", .text).notNull().defaults(to: ChatSessionKind.conversation.rawValue)
+                    }
+                    if !sessionColumns.contains("capabilities_json") {
+                        table.add(column: "capabilities_json", .text)
+                    }
+                }
+            }
+        }
         try migrator.migrate(dbQueue)
     }
 
@@ -366,6 +403,7 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                     lastSeenMS: section.gateway.lastSeenAt.map(Self.ms),
                     availableModelsJSON: modelsJSON,
                     defaultModelID: section.gateway.defaultModelID,
+                    capabilitiesJSON: Self.encodeJSON(section.gateway.capabilities),
                     modifiedAtMS: now
                 )
                 try gatewayRecord.save(db)
@@ -382,6 +420,9 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                         previewText: existing?.previewText.isEmpty == false ? existing!.previewText : session.previewText,
                         updatedAtMS: existing?.updatedAtMS ?? session.updatedAt.map(Self.ms),
                         unreadCount: existing?.unreadCount ?? session.unreadCount,
+                        sourceJSON: Self.encodeJSON(session.source),
+                        kind: session.kind.rawValue,
+                        capabilitiesJSON: Self.encodeJSON(session.capabilities),
                         createdAtMS: existing?.createdAtMS ?? now,
                         modifiedAtMS: now
                     )
@@ -412,7 +453,10 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                         localTitle: session.localTitle,
                         previewText: session.previewText,
                         updatedAt: session.updatedAtMS.map(Self.date),
-                        unreadCount: session.unreadCount
+                        unreadCount: session.unreadCount,
+                        source: Self.decodeJSON(RemoteConversationSource.self, from: session.sourceJSON),
+                        kind: ChatSessionKind(rawValue: session.kind) ?? .conversation,
+                        capabilities: Self.decodeJSON(RemoteRelayCapabilities.self, from: session.capabilitiesJSON)
                     )
                 )
             }
@@ -435,7 +479,8 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                     protocolVersion: gatewayRecord?.protocolVersion.map(Int.init),
                     lastSeenAt: gatewayRecord?.lastSeenMS.map(Self.date) ?? sessions.compactMap(\.updatedAt).max(),
                     availableModels: availableModels,
-                    defaultModelID: gatewayRecord?.defaultModelID
+                    defaultModelID: gatewayRecord?.defaultModelID,
+                    capabilities: Self.decodeJSON(RemoteRelayCapabilities.self, from: gatewayRecord?.capabilitiesJSON)
                 )
                 return GatewaySection(id: gateway.id, gateway: gateway, sessions: sessions)
             }
@@ -649,6 +694,18 @@ nonisolated final class AppDatabase: @unchecked Sendable {
         }
     }
 
+    nonisolated func approvalKind(sessionID: SessionID, approvalID: String) throws -> String? {
+        try dbQueue.read { db in
+            let records = try MessageRecord
+                .filter(MessageRecord.Columns.sessionID == sessionID.rawValue)
+                .fetchAll(db)
+            return records.lazy
+                .compactMap { Self.decodeExecApprovalJSON($0.execApprovalJSON) }
+                .first(where: { $0.approvalID == approvalID })?
+                .approvalKind
+        }
+    }
+
     nonisolated func ingestInboxEntries(_ entries: [RelayInboxEntry], clientID: String) throws -> [String] {
         var touched = Set<String>()
 
@@ -709,6 +766,15 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                     )
                     touched.formUnion(resolvedSessionIDs)
                     continue
+                case .reaction(let reaction):
+                    let action = reaction.remove == true ? "removed" : "added"
+                    body = "Reaction \(action): \(reaction.emoji) · \(reaction.targetMsgID)"
+                    relayAttachments = []
+                    execApprovalJSON = nil
+                case .system(let system):
+                    body = "System: \(system.event)"
+                    relayAttachments = []
+                    execApprovalJSON = nil
                 default:
                     continue
                 }
@@ -722,6 +788,7 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                 let existingSession = try SessionRecord.fetchOne(db, key: sessionID)
                 if existingSession == nil {
                     let now = Self.nowMS()
+                    let gatewayCapabilitiesJSON = try GatewayRecord.fetchOne(db, key: serverPeer)?.capabilitiesJSON
                     let session = SessionRecord(
                         sessionID: sessionID,
                         gatewayID: serverPeer,
@@ -732,6 +799,9 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                         previewText: "",
                         updatedAtMS: Int64(message.tsSent),
                         unreadCount: 0,
+                        sourceJSON: nil,
+                        kind: ChatSessionKind.conversation.rawValue,
+                        capabilitiesJSON: gatewayCapabilitiesJSON,
                         createdAtMS: now,
                         modifiedAtMS: now
                     )
@@ -832,7 +902,10 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                 localTitle: session.localTitle,
                 previewText: session.previewText,
                 updatedAt: session.updatedAtMS.map(Self.date),
-                unreadCount: session.unreadCount
+                unreadCount: session.unreadCount,
+                source: Self.decodeJSON(RemoteConversationSource.self, from: session.sourceJSON),
+                kind: ChatSessionKind(rawValue: session.kind) ?? .conversation,
+                capabilities: Self.decodeJSON(RemoteRelayCapabilities.self, from: session.capabilitiesJSON)
             )
         }
     }
@@ -859,7 +932,10 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                     localTitle: session.localTitle,
                     previewText: session.previewText,
                     updatedAt: session.updatedAtMS.map(Self.date),
-                    unreadCount: session.unreadCount
+                    unreadCount: session.unreadCount,
+                    source: Self.decodeJSON(RemoteConversationSource.self, from: session.sourceJSON),
+                    kind: ChatSessionKind(rawValue: session.kind) ?? .conversation,
+                    capabilities: Self.decodeJSON(RemoteRelayCapabilities.self, from: session.capabilitiesJSON)
                 )
                 return viewData.displayLabel(gatewayDisplayName: nil)
             }
@@ -1202,6 +1278,18 @@ nonisolated final class AppDatabase: @unchecked Sendable {
             return "{}"
         }
         return text
+    }
+
+    private nonisolated static func encodeJSON<T: Encodable>(_ value: T?) -> String? {
+        guard let value,
+              let data = try? JSONEncoder().encode(value) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    private nonisolated static func decodeJSON<T: Decodable>(_ type: T.Type, from raw: String?) -> T? {
+        guard let raw,
+              let data = raw.data(using: .utf8) else { return nil }
+        return try? JSONDecoder().decode(type, from: data)
     }
 
     private nonisolated static func decodeRouteJSON(_ raw: String) -> RelayRoute {

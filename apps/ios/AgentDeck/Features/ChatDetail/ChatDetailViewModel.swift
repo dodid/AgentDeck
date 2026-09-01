@@ -30,6 +30,8 @@ final class ChatDetailViewModel {
     var didRecentlyFetchMessages = false
     var appearanceRenderToken: Int = 0
     var approvalStates: [String: ApprovalCardState] = [:]
+    private(set) var supportsAttachments = false
+    private var sessionCapabilities: RemoteRelayCapabilities?
 
     var hasSuggestions: Bool {
         !commandSuggestions.isEmpty || !modelSuggestions.isEmpty
@@ -59,6 +61,7 @@ final class ChatDetailViewModel {
             if let chatRepository = environment.chatRepository as? DefaultChatRepository {
                 if let session = try? await chatRepository.session(sessionID) {
                     self.title = session.displayLabelParts(gatewayDisplayName: nil)
+                    self.applyCapabilities(session.capabilities)
                 }
 
                 let sections = chatRepository.observeSessionSections()
@@ -69,6 +72,7 @@ final class ChatDetailViewModel {
                         self.title = session.displayLabelParts(gatewayDisplayName: section.gateway.displayName)
                         self.platform = section.gateway.softwareID
                         self.availableModels = section.gateway.availableModels
+                        self.applyCapabilities(session.capabilities ?? section.gateway.capabilities)
                         self.updateSuggestions()
                     } else if let session = try? await chatRepository.session(sessionID) {
                         self.title = session.displayLabelParts(gatewayDisplayName: nil)
@@ -137,6 +141,10 @@ final class ChatDetailViewModel {
         let trimmed = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         let attachments = draftAttachments
         guard !trimmed.isEmpty || !attachments.isEmpty else { return }
+        guard attachments.isEmpty || supportsAttachments else {
+            errorMessage = String(localized: "Attachments are not supported by this session.")
+            return
+        }
         isSending = true
 
         if let chatRepository = environment.chatRepository as? DefaultChatRepository,
@@ -257,6 +265,10 @@ final class ChatDetailViewModel {
     }
 
     func addAttachment(_ item: PhotosPickerItem) {
+        guard supportsAttachments else {
+            errorMessage = String(localized: "Attachments are not supported by this session.")
+            return
+        }
         Task {
             guard let data = try? await item.loadTransferable(type: Data.self) else { return }
             let contentType = item.supportedContentTypes.first
@@ -343,6 +355,10 @@ final class ChatDetailViewModel {
 
     func sendApproval(_ decision: ApprovalDecision, for item: TranscriptItemViewData) async {
         guard let approval = item.execApproval else { return }
+        guard supportsApproval(kind: approval.approvalKind) else {
+            errorMessage = String(localized: "Approvals are not supported by this session.")
+            return
+        }
         let id = approval.approvalID
         let currentState = approvalStates[id] ?? .pending
         switch currentState {
@@ -364,6 +380,21 @@ final class ChatDetailViewModel {
         } catch {
             approvalStates[id] = .failed(decision, error.localizedDescription)
             errorMessage = error.localizedDescription
+        }
+    }
+
+    private func applyCapabilities(_ capabilities: RemoteRelayCapabilities?) {
+        sessionCapabilities = capabilities
+        supportsAttachments = capabilities?.attachments?.supported == true
+    }
+
+    private func supportsApproval(kind: String) -> Bool {
+        guard let approvals = sessionCapabilities?.approvals else { return false }
+        switch kind.lowercased() {
+        case "exec": return approvals.exec
+        case "tool", "plugin": return approvals.tool
+        case "custom": return approvals.custom
+        default: return false
         }
     }
 

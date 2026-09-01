@@ -17,7 +17,11 @@ struct SessionInspectorView: View {
 
                 Section("Session") {
                     InspectorCopyableRow(icon: "text.bubble", title: "Name", value: nonEmpty(viewModel.sessionTitle))
+                    InspectorCopyableRow(icon: "tag", title: "Type", value: nonEmpty(viewModel.sessionKind))
                     InspectorCopyableRow(icon: "square.stack.3d.up", title: "Agent", value: nonEmpty(viewModel.agentID))
+                    if !viewModel.sourceChannel.isEmpty {
+                        InspectorCopyableRow(icon: "arrow.triangle.branch", title: "Source", value: viewModel.sourceChannel)
+                    }
                     InspectorCopyableRow(icon: "number", title: "Conversation", value: nonEmpty(viewModel.conversationID))
                     InspectorCopyableRow(icon: "number.square", title: "Instance", value: nonEmpty(viewModel.instanceID))
                     InspectorCopyableRow(icon: "character.cursor.ibeam", title: "Thread", value: nonEmpty(viewModel.threadID))

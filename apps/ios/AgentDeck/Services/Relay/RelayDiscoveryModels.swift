@@ -13,7 +13,7 @@ struct RemoteSoftwareInfo: Codable, Equatable {
     var version: String?
 }
 
-struct RemoteMessagingCapabilities: Codable, Equatable {
+nonisolated struct RemoteMessagingCapabilities: Codable, Equatable, Sendable {
     var text: Bool
     var streaming: Bool
     var reactions: Bool
@@ -27,7 +27,7 @@ struct RemoteMessagingCapabilities: Codable, Equatable {
     }
 }
 
-struct RemoteConversationCapabilities: Codable, Equatable {
+nonisolated struct RemoteConversationCapabilities: Codable, Equatable, Sendable {
     var list: Bool
     var create: Bool
     var reset: Bool
@@ -35,7 +35,7 @@ struct RemoteConversationCapabilities: Codable, Equatable {
     var threading: Bool
 }
 
-struct RemoteAgentCapabilities: Codable, Equatable {
+nonisolated struct RemoteAgentCapabilities: Codable, Equatable, Sendable {
     var list: Bool
     var multiple: Bool
     var switch_: Bool
@@ -49,7 +49,7 @@ struct RemoteAgentCapabilities: Codable, Equatable {
     }
 }
 
-struct RemoteRelayCapabilities: Codable, Equatable {
+nonisolated struct RemoteRelayCapabilities: Codable, Equatable, Sendable {
     var messaging: RemoteMessagingCapabilities
     var conversations: RemoteConversationCapabilities
     var agents: RemoteAgentCapabilities
@@ -58,7 +58,7 @@ struct RemoteRelayCapabilities: Codable, Equatable {
     var extensions: [String: JSONValue]?
 }
 
-struct RemoteAttachmentCapabilities: Codable, Equatable {
+nonisolated struct RemoteAttachmentCapabilities: Codable, Equatable, Sendable {
     var supported: Bool
     var kinds: [String]
     var maxBytesByKind: [String: Int]?
@@ -72,7 +72,7 @@ struct RemoteAttachmentCapabilities: Codable, Equatable {
     }
 }
 
-struct RemoteApprovalCapabilities: Codable, Equatable {
+nonisolated struct RemoteApprovalCapabilities: Codable, Equatable, Sendable {
     var exec: Bool
     var tool: Bool
     var custom: Bool
@@ -98,7 +98,7 @@ struct RemoteAgentDescriptor: Codable, Equatable {
     }
 }
 
-struct RemoteConversationSource: Codable, Equatable {
+nonisolated struct RemoteConversationSource: Codable, Equatable, Sendable {
     var channel: String
     var chatKind: String?
     var accountID: String?
@@ -174,7 +174,7 @@ struct RemoteIdentityDoc: Codable {
 
 // MARK: - Shared support types
 
-enum JSONValue: Codable, Equatable, Sendable {
+nonisolated enum JSONValue: Codable, Equatable, Sendable {
     case string(String)
     case number(Double)
     case bool(Bool)

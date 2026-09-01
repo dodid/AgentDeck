@@ -14,6 +14,8 @@ final class SessionInspectorViewModel {
     var conversationID: String = ""
     var instanceID: String = ""
     var threadID: String = ""
+    var sessionKind: String = ""
+    var sourceChannel: String = ""
     var localSessionTitle: String = ""
     var deviceName: String = ""
     var deviceID: String = ""
@@ -36,6 +38,10 @@ final class SessionInspectorViewModel {
             self.conversationID = session.route.conversationID ?? ""
             self.instanceID = session.route.instanceID ?? ""
             self.threadID = session.id.rawValue
+            self.sessionKind = session.kind == .agentEntrypoint
+                ? String(localized: "Agent entry point")
+                : String(localized: "Conversation")
+            self.sourceChannel = session.source?.channel ?? ""
             self.localSessionTitle = session.localTitle ?? ""
             self.sessionTitle = session.displayLabel(gatewayDisplayName: nil)
 
@@ -47,6 +53,10 @@ final class SessionInspectorViewModel {
                     self.gatewayDisplayName = section.gateway.displayName
                     self.localSessionTitle = currentSession.localTitle ?? ""
                     self.sessionTitle = currentSession.displayLabel(gatewayDisplayName: section.gateway.displayName)
+                    self.sessionKind = currentSession.kind == .agentEntrypoint
+                        ? String(localized: "Agent entry point")
+                        : String(localized: "Conversation")
+                    self.sourceChannel = currentSession.source?.channel ?? ""
                 }
                 break
             }

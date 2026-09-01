@@ -20,4 +20,5 @@ struct Gateway: Equatable, Identifiable, Sendable {
     var lastSeenAt: Date?
     var availableModels: [ModelDescriptor]
     var defaultModelID: String?
+    var capabilities: RemoteRelayCapabilities? = nil
 }

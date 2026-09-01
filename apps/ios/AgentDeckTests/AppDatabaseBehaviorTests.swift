@@ -177,6 +177,39 @@ final class AppDatabaseBehaviorTests: XCTestCase {
         }
     }
 
+    func testInboxIngestionPreservesReactionAndSystemEvents() throws {
+        try withSeededDatabase { database, sessionID in
+            let reaction = makeRelayMessage(
+                id: "reaction-message",
+                from: "server",
+                to: "ios",
+                timestamp: 1_000,
+                content: .reaction(RelayReactionContent(
+                    type: "reaction",
+                    targetMsgID: "message-1",
+                    emoji: "👍",
+                    remove: false
+                ))
+            )
+            let system = makeRelayMessage(
+                id: "system-message",
+                from: "server",
+                to: "ios",
+                timestamp: 2_000,
+                content: .system(RelaySystemContent(type: "system", event: "session.reset", data: nil))
+            )
+
+            _ = try database.ingestInboxEntries([
+                RelayInboxEntry(key: "msg/ios/reaction.json", message: reaction),
+                RelayInboxEntry(key: "msg/ios/system.json", message: system),
+            ], clientID: "ios")
+
+            let messages = try database.transcript(sessionID: sessionID, limit: 10).messages
+            XCTAssertEqual(messages.first(where: { $0.id.rawValue == "reaction-message" })?.text, "Reaction added: 👍 · message-1")
+            XCTAssertEqual(messages.first(where: { $0.id.rawValue == "system-message" })?.text, "System: session.reset")
+        }
+    }
+
     func testInboxHeadSurvivesNilSaveAndDatabaseReopen() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

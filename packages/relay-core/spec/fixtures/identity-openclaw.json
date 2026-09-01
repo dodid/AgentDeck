@@ -7,7 +7,7 @@
   "software": { "id": "openclaw", "name": "OpenClaw", "version": "0.3.5" },
   "capabilities": {
     "messaging": { "text": true, "streaming": true, "reactions": true, "system_events": false },
-    "conversations": { "list": true, "create": true, "reset": true, "archive": false, "threading": false },
+    "conversations": { "list": true, "create": false, "reset": false, "archive": false, "threading": false },
     "agents": { "list": true, "multiple": true, "switch": true, "per_agent_models": true },
     "attachments": {
       "supported": true,
@@ -15,7 +15,7 @@
       "max_bytes_by_kind": { "image": 10485760, "video": 52428800, "audio": 26214400, "file": 26214400 },
       "oversize_behavior": "reject"
     },
-    "approvals": { "exec": true, "tool": false, "custom": false }
+    "approvals": { "exec": true, "tool": true, "custom": false }
   },
   "limits": {
     "inbound_attachment_max_bytes": { "image": 10485760, "video": 52428800, "audio": 26214400, "file": 26214400 },

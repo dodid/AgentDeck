@@ -1,5 +1,6 @@
 import fs from "node:fs/promises";
 import { maxBytesForKind } from "openclaw/plugin-sdk/media-runtime";
+import { isAcpSessionKey, isCronSessionKey, isSubagentSessionKey } from "openclaw/plugin-sdk/routing";
 import { getRelayConfig, getRelayRuntime } from "./runtime.js";
 import { IDENTITY_REFRESH_INTERVAL_MS, RELAY_PLUGIN_VERSION, Service } from "./service.js";
 import type { ResolvedR2RelayAccount } from "./config.js";
@@ -38,7 +39,7 @@ export async function syncPublishedIdentity(
     protocol: { name: "r2-relay", version: 3 },
     software: { id: "openclaw", name: "OpenClaw", version: RELAY_PLUGIN_VERSION },
     capabilities: {
-      messaging: { text: true, streaming: true, reactions: true, system_events: true },
+      messaging: { text: true, streaming: true, reactions: true, system_events: false },
       conversations: { list: true, create: false, reset: false, archive: false, threading: false },
       agents: { list: true, multiple: agents.length > 1, switch: true, per_agent_models: Boolean(modelCapabilities) },
       attachments: {
@@ -49,7 +50,7 @@ export async function syncPublishedIdentity(
       },
       approvals: {
         exec: true,
-        tool: false,
+        tool: true,
         custom: false,
       },
       extensions: null,
@@ -173,12 +174,12 @@ async function collectPublishedConversations(_account: ResolvedR2RelayAccount): 
   };
 }
 
-function shouldPublishIdentitySession(sessionKey: string): boolean {
+export function shouldPublishIdentitySession(sessionKey: string): boolean {
   const normalized = sessionKey.trim().toLowerCase();
   if (!normalized) {
     return false;
   }
-  if (normalized.startsWith("cron:")) {
+  if (isCronSessionKey(normalized) || isSubagentSessionKey(normalized) || isAcpSessionKey(normalized)) {
     return false;
   }
   if (normalized.startsWith("dreaming-")) {
@@ -188,7 +189,10 @@ function shouldPublishIdentitySession(sessionKey: string): boolean {
   const parts = normalized.split(":");
   if (parts.length >= 3 && parts[0] === "agent") {
     const scopedKey = parts.slice(2).join(":");
-    if (scopedKey.startsWith("cron:")) {
+    if (scopedKey.startsWith("dreaming-")) {
+      return false;
+    }
+    if (isCronSessionKey(scopedKey) || isSubagentSessionKey(scopedKey) || isAcpSessionKey(scopedKey)) {
       return false;
     }
   }

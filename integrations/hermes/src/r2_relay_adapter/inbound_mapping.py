@@ -25,6 +25,11 @@ def format_inbound_text(msg: dict[str, Any]) -> str:
         decisions = content.get('allowed_decisions') or []
         return f'[approval_request:{slug}] options: {", ".join(str(d) for d in decisions)}'
 
+    if content_type == 'approval_response':
+        approval_id = str(content.get('approval_id') or '').strip()
+        decision = str(content.get('decision') or '').strip()
+        return f'/approve {approval_id} {decision}' if approval_id and decision else ''
+
     # Default: text
     delivery = msg.get('delivery') or {}
     stream = delivery.get('stream')

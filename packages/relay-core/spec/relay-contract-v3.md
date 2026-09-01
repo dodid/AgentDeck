@@ -264,6 +264,8 @@ interface ConversationDescriptor {
 
 `ConversationDescriptor` lists real conversations the server is currently maintaining. Entrypoint chats are addressed via `AgentDescriptor.default_route`; they do not appear here until they have content.
 
+Runtime execution contexts are not conversations. Cron runs, subagent runs, ACP sessions, maintenance jobs, and similar internal sessions MUST NOT be published in `conversations`. Their user-visible output MUST be routed to an interactive conversation. Platform-specific controls for those resources belong in typed messages or negotiated extensions, not synthetic conversation rows.
+
 ### Conversation Source — `ConversationSource`
 
 Native context for display. The route carries no display strings; everything lives here.

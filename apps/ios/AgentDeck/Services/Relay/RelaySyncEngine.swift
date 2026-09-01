@@ -38,10 +38,14 @@ actor RelaySyncEngine {
             guard let target = try database.relaySendTarget(for: sessionID) else {
                 throw RelaySyncEngineError.missingSession
             }
+            guard let session = try database.session(sessionID: sessionID) else {
+                throw RelaySyncEngineError.missingSession
+            }
             let messaging = RelayMessagingService(config: config)
             let uploader = RelayAttachmentUploadService(config: config)
             let draftAttachments = try database.draftAttachmentsForMessage(messageID: messageID)
             if !draftAttachments.isEmpty {
+                try validateAttachments(draftAttachments, capabilities: session.capabilities?.attachments)
                 let now = Date().timeIntervalSince1970 * 1000
                 let uploadedAttachments = try await uploader.uploadDraftAttachments(
                     draftAttachments,
@@ -81,6 +85,13 @@ actor RelaySyncEngine {
             let device = try await deviceRepository.loadDeviceProfile()
             guard let target = try database.relaySendTarget(for: sessionID) else {
                 throw RelaySyncEngineError.missingSession
+            }
+            guard let session = try database.session(sessionID: sessionID) else {
+                throw RelaySyncEngineError.missingSession
+            }
+            let approvalKind = try database.approvalKind(sessionID: sessionID, approvalID: approvalID) ?? "exec"
+            guard supportsApproval(kind: approvalKind, capabilities: session.capabilities?.approvals) else {
+                throw RelaySyncEngineError.approvalKindUnsupported(approvalKind)
             }
             let messaging = RelayMessagingService(config: config)
             _ = try await messaging.sendApprovalResponse(
@@ -165,11 +176,45 @@ actor RelaySyncEngine {
         }
         sendWaiters.removeFirst().resume()
     }
+
+    private func validateAttachments(
+        _ attachments: [DraftAttachment],
+        capabilities: RemoteAttachmentCapabilities?
+    ) throws {
+        guard let capabilities, capabilities.supported else {
+            throw RelaySyncEngineError.attachmentsUnsupported
+        }
+        let supportedKinds = Set(capabilities.kinds)
+        for attachment in attachments {
+            guard supportedKinds.contains(attachment.kind.rawValue) else {
+                throw RelaySyncEngineError.attachmentKindUnsupported(attachment.kind.rawValue)
+            }
+            if let size = attachment.sizeBytes,
+               let maxBytes = capabilities.maxBytesByKind?[attachment.kind.rawValue],
+               size > maxBytes {
+                throw RelaySyncEngineError.attachmentTooLarge(attachment.fileName ?? attachment.id, maxBytes)
+            }
+        }
+    }
+
+    private func supportsApproval(kind: String, capabilities: RemoteApprovalCapabilities?) -> Bool {
+        guard let capabilities else { return false }
+        switch kind.lowercased() {
+        case "exec": return capabilities.exec
+        case "tool", "plugin": return capabilities.tool
+        case "custom": return capabilities.custom
+        default: return false
+        }
+    }
 }
 
 enum RelaySyncEngineError: LocalizedError {
     case missingSession
     case missingMessage
+    case attachmentsUnsupported
+    case attachmentKindUnsupported(String)
+    case attachmentTooLarge(String, Int)
+    case approvalKindUnsupported(String)
 
     var errorDescription: String? {
         switch self {
@@ -177,6 +222,18 @@ enum RelaySyncEngineError: LocalizedError {
             return String(localized: "The selected session could not be resolved for relay sending.")
         case .missingMessage:
             return String(localized: "The selected message could not be retried.")
+        case .attachmentsUnsupported:
+            return String(localized: "Attachments are not supported by this session.")
+        case .attachmentKindUnsupported(let kind):
+            return String.localizedStringWithFormat(String(localized: "This session does not support %@ attachments."), kind)
+        case .attachmentTooLarge(let name, let maxBytes):
+            return String.localizedStringWithFormat(
+                String(localized: "%@ exceeds this session's attachment limit of %@."),
+                name,
+                ByteCountFormatter.string(fromByteCount: Int64(maxBytes), countStyle: .file)
+            )
+        case .approvalKindUnsupported(let kind):
+            return String.localizedStringWithFormat(String(localized: "This session does not support %@ approvals."), kind)
         }
     }
 }

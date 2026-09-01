@@ -105,7 +105,8 @@ struct ChatListView: View {
             HStack(alignment: .firstTextBaseline) {
                 SessionLabelView(
                     label: row.title,
-                    secondaryColor: AppTheme.text
+                    secondaryColor: AppTheme.text,
+                    badgeIcon: row.kind == .agentEntrypoint ? "sparkles" : "text.bubble.fill"
                 )
                 Spacer(minLength: 8)
                 Text(row.timestampText)
