@@ -50,6 +50,7 @@ jobs:
         run: |
           npm ci
           npm test
+          mkdir -p "$RUNNER_TEMP/openclaw"
           npm pack --pack-destination "$RUNNER_TEMP/openclaw"
       - name: Test Hermes plugin and build distributions
         working-directory: integrations/hermes
