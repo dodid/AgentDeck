@@ -29,14 +29,6 @@ struct ChatSession: Equatable, Identifiable, Sendable {
 }
 
 extension ChatSession {
-    nonisolated var isFreeMainAgentSession: Bool {
-        agentID == "main"
-    }
-
-    nonisolated var requiresAgentSubscription: Bool {
-        !isFreeMainAgentSession
-    }
-
     nonisolated func displayLabelParts(gatewayDisplayName _: String?) -> SessionDisplayLabel {
         let trimmedLocalTitle = localTitle?.trimmingCharacters(in: .whitespacesAndNewlines)
 

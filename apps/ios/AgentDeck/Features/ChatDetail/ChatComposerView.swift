@@ -11,97 +11,72 @@ struct ChatComposerView: View {
 
     var body: some View {
         VStack(spacing: 8) {
-            if viewModel.isInteractionLocked {
-                Button {
-                    viewModel.requestComposerAccess()
-                } label: {
-                    HStack(alignment: .center, spacing: 10) {
-                        Text(viewModel.composerPlaceholder)
-                            .font(style.composerFont)
-                            .foregroundStyle(AppTheme.dim)
-                            .frame(maxWidth: .infinity, alignment: .leading)
+            if !viewModel.draftAttachments.isEmpty {
+                composerAttachmentTray
+            }
 
-                        Image(systemName: "lock.circle.fill")
-                            .font(style.composerActionIconFont)
-                            .foregroundStyle(AppTheme.blue)
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 12)
-                    .background(AppTheme.panel)
-                    .clipShape(RoundedRectangle(cornerRadius: style.composerCornerRadius))
-                    .shadow(color: Color.black.opacity(0.10), radius: 10, x: 0, y: -2)
-                }
-                .buttonStyle(.plain)
-            } else {
-                VStack(spacing: 8) {
-                    if !viewModel.draftAttachments.isEmpty {
-                        composerAttachmentTray
-                    }
+            HStack(alignment: .center, spacing: 10) {
+                attachmentButton
 
-                    HStack(alignment: .center, spacing: 10) {
-                        attachmentButton
-
-                        HStack(alignment: .center, spacing: 10) {
-                            TextField(
+                HStack(alignment: .center, spacing: 10) {
+                    TextField(
                                 viewModel.composerPlaceholder,
                                 text: Binding(
                                     get: { viewModel.draftText },
                                     set: { viewModel.setDraftText($0) }
                                 ),
                                 axis: .vertical
-                            )
-                            .textFieldStyle(.plain)
-                            .font(style.composerFont)
-                            .foregroundStyle(AppTheme.text)
-                            .lineLimit(1...5)
-                            .frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
-                            .focused($inputFocused)
-                            .submitLabel(.return)
-                            .textInputAutocapitalization(.sentences)
-                            .autocorrectionDisabled(false)
+                    )
+                    .textFieldStyle(.plain)
+                    .font(style.composerFont)
+                    .foregroundStyle(AppTheme.text)
+                    .lineLimit(1...5)
+                    .frame(maxWidth: .infinity, minHeight: 22, alignment: .leading)
+                    .focused($inputFocused)
+                    .submitLabel(.return)
+                    .textInputAutocapitalization(.sentences)
+                    .autocorrectionDisabled(false)
 
-                            if viewModel.hasContent || viewModel.hasSuggestions {
-                                Button(action: onSubmit) {
-                                    Image(systemName: viewModel.hasSuggestions ? "checkmark.circle.fill" : "arrow.up.circle.fill")
-                                        .font(style.composerActionIconFont)
-                                        .foregroundStyle(sendButtonDisabled ? AppTheme.dim.opacity(0.45) : AppTheme.blue)
-                                        .frame(width: 30, height: 30)
-                                }
-                                .buttonStyle(.plain)
-                                .disabled(sendButtonDisabled)
-                            } else {
-                                Button {
-                                    inputFocused = false
-                                    viewModel.toggleDictation()
-                                } label: {
-                                    Image(systemName: viewModel.isDictating ? "waveform.circle.fill" : "mic.fill")
-                                        .font(.system(size: 18, weight: .semibold))
-                                        .foregroundStyle(viewModel.isDictating ? AppTheme.red : AppTheme.blue)
-                                        .frame(width: 30, height: 30)
-                                        .background((viewModel.isDictating ? AppTheme.red.opacity(0.12) : AppTheme.blue.opacity(0.10)), in: Circle())
-                                }
-                                .buttonStyle(.plain)
-                                .accessibilityLabel(String(localized: viewModel.isDictating ? "Stop voice input" : "Start voice input"))
-                            }
+                    if viewModel.hasContent || viewModel.hasSuggestions {
+                        Button(action: onSubmit) {
+                            Image(systemName: viewModel.hasSuggestions ? "checkmark.circle.fill" : "arrow.up.circle.fill")
+                                .font(style.composerActionIconFont)
+                                .foregroundStyle(sendButtonDisabled ? AppTheme.dim.opacity(0.45) : AppTheme.blue)
+                                .frame(width: 30, height: 30)
                         }
-                        .padding(.leading, 14)
-                        .padding(.trailing, 10)
-                        .padding(.vertical, 10)
-                        .frame(minHeight: 46, alignment: .center)
-                        .background(AppTheme.panel)
-                        .clipShape(RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous)
-                                .stroke(viewModel.isDictating ? AppTheme.blue.opacity(0.35) : AppTheme.border.opacity(0.24), lineWidth: 1)
-                        )
-                        .contentShape(RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous))
-                        .onTapGesture {
-                            inputFocused = true
+                        .buttonStyle(.plain)
+                        .disabled(sendButtonDisabled)
+                    } else {
+                        Button {
+                            inputFocused = false
+                            viewModel.toggleDictation()
+                        } label: {
+                            Image(systemName: viewModel.isDictating ? "waveform.circle.fill" : "mic.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundStyle(viewModel.isDictating ? AppTheme.red : AppTheme.blue)
+                                .frame(width: 30, height: 30)
+                                .background((viewModel.isDictating ? AppTheme.red.opacity(0.12) : AppTheme.blue.opacity(0.10)), in: Circle())
                         }
-                        .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: -2)
-                        .frame(maxWidth: .infinity)
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(String(localized: viewModel.isDictating ? "Stop voice input" : "Start voice input"))
                     }
                 }
+                .padding(.leading, 14)
+                .padding(.trailing, 10)
+                .padding(.vertical, 10)
+                .frame(minHeight: 46, alignment: .center)
+                .background(AppTheme.panel)
+                .clipShape(RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous)
+                        .stroke(viewModel.isDictating ? AppTheme.blue.opacity(0.35) : AppTheme.border.opacity(0.24), lineWidth: 1)
+                )
+                .contentShape(RoundedRectangle(cornerRadius: composerContainerCornerRadius, style: .continuous))
+                .onTapGesture {
+                    inputFocused = true
+                }
+                .shadow(color: Color.black.opacity(0.08), radius: 12, x: 0, y: -2)
+                .frame(maxWidth: .infinity)
             }
         }
         .padding(.horizontal, 12)
@@ -158,7 +133,7 @@ struct ChatComposerView: View {
     }
 
     private var sendButtonDisabled: Bool {
-        viewModel.isSending || viewModel.isInteractionLocked || !viewModel.hasContent
+        viewModel.isSending || !viewModel.hasContent
     }
 
     private var composerContainerCornerRadius: CGFloat {

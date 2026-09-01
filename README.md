@@ -1,6 +1,36 @@
-# AgentDeck
+# AgentDeck — OpenClaw and Hermes on iPhone
 
-AgentDeck is an open-source iOS client for OpenClaw and Hermes. It exchanges messages through a relay v3 object-storage protocol, allowing an agent server to remain behind its firewall while the user keeps relay data in their own Cloudflare R2 bucket.
+AgentDeck is a fully open-source iOS client for [OpenClaw](https://openclaw.ai/)
+and [Hermes Agent](https://hermes-agent.nousresearch.com/). It exchanges messages
+through a relay v3 object-storage protocol, allowing an agent server to remain
+behind its firewall while you keep relay data in your own Cloudflare R2 bucket.
+
+The project includes the iOS app and the platform plugins that connect OpenClaw
+and Hermes to the same relay. The complete source is available under the MIT
+License.
+
+## Why this exists
+
+- **No ports open:** keep the agent server behind its firewall.
+- **Your data stays yours:** relay objects live in your Cloudflare R2 bucket.
+- **One app for two platforms:** use the same iOS client with OpenClaw or Hermes.
+- **Open and inspectable:** the app, protocol, and integrations are available to
+  review, build, and modify under the MIT License.
+
+## Get AgentDeck
+
+Choose the installation path that fits you:
+
+- **Build it for free:** clone this repository, open `apps/ios/AgentDeck.xcodeproj`
+  in Xcode, and run the app on a simulator. You can also deploy to your own
+  device with your Apple development team.
+- **Install from the App Store:** download the signed public release of AgentDeck
+  directly from the App Store as a paid app. Search for **AgentDeck** in the App
+  Store.
+
+The App Store release and the source-built app use the same relay protocol and
+features. The onboarding flow asks for an R2 endpoint, bucket, access key ID, and
+secret access key.
 
 ## Features
 
@@ -18,14 +48,15 @@ AgentDeck is an open-source iOS client for OpenClaw and Hermes. It exchanges mes
 - `integrations/hermes/` — Hermes adapter
 - `docs/` — architecture, CI, and release documentation
 
-## Getting started
+## Connect an agent
 
-To run the iOS app, open `apps/ios/AgentDeck.xcodeproj` in Xcode and select the `AgentDeck` scheme. The onboarding flow asks for an R2 endpoint, bucket, access key ID, and secret access key.
+Install one of the platform integrations on the machine running your agent:
 
-Platform setup instructions are available in:
+- [OpenClaw plugin](integrations/openclaw/README.md) — install from ClawHub.
+- [Hermes plugin](integrations/hermes/README.md) — install from PyPI.
 
-- [OpenClaw integration](integrations/openclaw/README.md)
-- [Hermes integration](integrations/hermes/README.md)
+Then configure the plugin and AgentDeck with the same Cloudflare R2 endpoint,
+bucket, access key ID, and secret access key.
 
 ## Development
 
@@ -41,6 +72,13 @@ tools/ci/check-vendored-core.sh
 Hermes compatibility tests require a Hermes source checkout. GitHub Actions checks out the tested revision automatically; local runs set `PYTHONPATH` to a Hermes checkout.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution and verification guidance.
+
+## Support and issues
+
+Report bugs, request features, and discuss installation problems in the
+[AgentDeck GitHub Issues](https://github.com/dodid/AgentDeck/issues). When
+reporting a relay problem, include the platform integration, app version, and
+redacted logs; never include R2 credentials or private relay data.
 
 ## Security
 

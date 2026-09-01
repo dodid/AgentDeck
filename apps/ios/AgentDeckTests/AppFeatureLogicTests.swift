@@ -50,7 +50,7 @@ final class AppFeatureLogicTests: XCTestCase {
         XCTAssertTrue(engine.modelSuggestions(for: "/model openrouter/deep", models: models).isEmpty)
     }
 
-    func testSessionSubscriptionAndDisplayRules() {
+    func testSessionDisplayRules() {
         let gatewayID = GatewayID(rawValue: "server")
         let main = ChatSession(
             id: SessionID(rawValue: "main"),
@@ -64,8 +64,6 @@ final class AppFeatureLogicTests: XCTestCase {
             unreadCount: 0,
             source: nil
         )
-        XCTAssertTrue(main.isFreeMainAgentSession)
-        XCTAssertFalse(main.requiresAgentSubscription)
         XCTAssertEqual(main.displayLabel(gatewayDisplayName: nil), "Custom title")
 
         let secondary = ChatSession(
@@ -80,7 +78,6 @@ final class AppFeatureLogicTests: XCTestCase {
             unreadCount: 0,
             source: nil
         )
-        XCTAssertTrue(secondary.requiresAgentSubscription)
         XCTAssertEqual(secondary.displayLabel(gatewayDisplayName: nil), "research thread-42")
     }
 }

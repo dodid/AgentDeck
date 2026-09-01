@@ -48,8 +48,7 @@ final class ChatListViewModel {
                     title: session.displayLabelParts(gatewayDisplayName: section.gateway.displayName),
                     previewText: session.previewText.isEmpty ? String(localized: "No recent message") : session.previewText,
                     timestampText: timestampText(for: session.updatedAt),
-                    unreadCount: session.unreadCount,
-                    requiresSubscription: session.requiresAgentSubscription
+                    unreadCount: session.unreadCount
                 )
             }
         )

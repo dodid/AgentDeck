@@ -6,7 +6,6 @@ struct ChatListRowViewData: Identifiable, Equatable {
     let previewText: String
     let timestampText: String
     let unreadCount: Int
-    let requiresSubscription: Bool
 }
 
 struct ChatListSectionViewData: Identifiable, Equatable {

@@ -79,13 +79,6 @@ struct ChatDetailView: View {
                 SessionInspectorView(viewModel: SessionInspectorViewModel(environment: viewModel.environment, sessionID: viewModel.sessionID))
                     .presentationDetents([.large])
             }
-            .sheet(isPresented: Binding(
-                get: { viewModel.showingPaywall },
-                set: { viewModel.showingPaywall = $0 }
-            )) {
-                PaywallView(controller: viewModel.environment.subscriptionController)
-                    .presentationDetents([.large])
-            }
             .alert(
                 String(localized: "Attachment Error"),
                 isPresented: Binding(

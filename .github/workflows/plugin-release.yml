@@ -1,0 +1,130 @@
+name: Publish platform plugins
+
+on:
+  push:
+    tags:
+      - "plugins-v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: plugin-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NPM_CONFIG_AUDIT: "false"
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+jobs:
+  validate:
+    name: Validate release artifacts
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: integrations/openclaw/package-lock.json
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: integrations/hermes/pyproject.toml
+      - name: Read tested Hermes revision
+        id: compatibility
+        run: echo "hermes_ref=$(jq -r .hermes.tested_commit compatibility.json)" >> "$GITHUB_OUTPUT"
+      - name: Check out tested Hermes revision
+        uses: actions/checkout@v7
+        with:
+          repository: NousResearch/hermes-agent
+          ref: ${{ steps.compatibility.outputs.hermes_ref }}
+          path: vendor/hermes-agent
+      - name: Test OpenClaw plugin and package it
+        working-directory: integrations/openclaw
+        run: |
+          npm ci
+          npm test
+          npm pack --pack-destination "$RUNNER_TEMP/openclaw"
+      - name: Test Hermes plugin and build distributions
+        working-directory: integrations/hermes
+        env:
+          PYTHONPATH: ${{ github.workspace }}/vendor/hermes-agent
+          HERMES_HOME: ${{ runner.temp }}/hermes-home
+        run: |
+          python -m pip install --upgrade build
+          python -m pip install -e '.[dev]'
+          python -m pytest -q
+          python -m build
+      - name: Verify Hermes wheel entry point
+        working-directory: integrations/hermes
+        run: |
+          python -m venv "$RUNNER_TEMP/hermes-package-check"
+          "$RUNNER_TEMP/hermes-package-check/bin/python" -m pip install dist/*.whl
+          "$RUNNER_TEMP/hermes-package-check/bin/python" -c \
+            'from importlib.metadata import entry_points; assert any(ep.name == "r2-relay" for ep in entry_points(group="hermes_agent.plugins"))'
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v7
+        with:
+          name: plugin-release-artifacts
+          path: |
+            ${{ runner.temp }}/openclaw/*.tgz
+            integrations/hermes/dist/*
+          if-no-files-found: error
+
+  publish-openclaw:
+    name: Publish OpenClaw plugin
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+      - name: Build package
+        working-directory: integrations/openclaw
+        run: |
+          npm ci
+          npm run build
+          npm pack
+      - name: Publish to npm
+        working-directory: integrations/openclaw
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public
+      - name: Validate and publish to ClawHub
+        working-directory: integrations/openclaw
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          npm install --global clawhub
+          clawhub package validate .
+          clawhub package publish . --dry-run
+          clawhub package publish .
+
+  publish-hermes:
+    name: Publish Hermes plugin
+    needs: validate
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build distributions
+        working-directory: integrations/hermes
+        run: |
+          python -m pip install --upgrade build
+          python -m build
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: integrations/hermes/dist/

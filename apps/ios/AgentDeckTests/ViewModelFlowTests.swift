@@ -148,7 +148,7 @@ final class ViewModelFlowTests: XCTestCase {
         XCTAssertEqual(model.scrollToBottomRequestToken, 1)
     }
 
-    func testChatDetailKeepsDraftOnSendFailureAndLocksSubscribedAgents() async {
+    func testChatDetailKeepsDraftOnSendFailure() async {
         let connection = MockConnectionRepository()
         let sync = MockSyncRepository()
         sync.error = MockRepositoryError.failed
@@ -162,11 +162,6 @@ final class ViewModelFlowTests: XCTestCase {
         XCTAssertEqual(model.draftText, "retry me")
         XCTAssertNotNil(model.errorMessage)
 
-        sync.error = nil
-        model.requiresAgentSubscription = true
-        await model.send()
-        XCTAssertTrue(model.showingPaywall)
-        XCTAssertTrue(sync.sentMessages.isEmpty)
     }
 
     func testChatDetailBackfillUsesExpandedPageLimitAndReportsFailure() async {
@@ -215,8 +210,7 @@ final class ViewModelFlowTests: XCTestCase {
             chatRepository: chat,
             syncRepository: sync,
             syncActivityStore: SyncActivityStore(),
-            chatAppearanceController: ChatAppearanceController(settingsRepository: settings),
-            subscriptionController: SubscriptionController()
+            chatAppearanceController: ChatAppearanceController(settingsRepository: settings)
         )
     }
 }

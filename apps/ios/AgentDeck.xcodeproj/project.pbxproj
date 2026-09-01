@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		D45F06DD2F7588920000AB40 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = D45F06DC2F7588920000AB40 /* GRDB */; };
-		D4FE9CA62F7B7804007D292B /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D4FE9CA52F7B7804007D292B /* StoreKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -24,7 +23,6 @@
 /* Begin PBXFileReference section */
 		D45F06132F757A1B0000AB40 /* AgentDeck.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AgentDeck.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		D4AA00012F90000100000001 /* AgentDeckTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AgentDeckTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		D4FE9CA52F7B7804007D292B /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -45,7 +43,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4FE9CA62F7B7804007D292B /* StoreKit.framework in Frameworks */,
 				D45F06DD2F7588920000AB40 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -82,7 +79,6 @@
 		D4FE9CA42F7B7804007D292B /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				D4FE9CA52F7B7804007D292B /* StoreKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -148,11 +144,6 @@
 				TargetAttributes = {
 					D45F06122F757A1B0000AB40 = {
 						CreatedOnToolsVersion = 26.3;
-						SystemCapabilities = {
-							com.apple.InAppPurchase = {
-								enabled = 1;
-							};
-						};
 					};
 					D4AA00042F90000100000004 = {
 						CreatedOnToolsVersion = 26.3;

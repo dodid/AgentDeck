@@ -9,7 +9,6 @@ struct AppEnvironment {
     let syncRepository: SyncRepository
     let syncActivityStore: SyncActivityStore
     let chatAppearanceController: ChatAppearanceController
-    let subscriptionController: SubscriptionController
 
     static func makeDefault() -> AppEnvironment {
         let connectionRepository = DefaultConnectionRepository()
@@ -22,7 +21,6 @@ struct AppEnvironment {
         let syncEngine = RelaySyncEngine(connectionRepository: connectionRepository, deviceRepository: deviceRepository, chatRepository: chatRepository, database: database)
         let syncRepository = DefaultSyncRepository(engine: syncEngine, activityStore: syncActivityStore)
         let chatAppearanceController = ChatAppearanceController(settingsRepository: settingsRepository)
-        let subscriptionController = SubscriptionController()
 
         return AppEnvironment(
             connectionRepository: connectionRepository,
@@ -32,8 +30,7 @@ struct AppEnvironment {
             chatRepository: chatRepository,
             syncRepository: syncRepository,
             syncActivityStore: syncActivityStore,
-            chatAppearanceController: chatAppearanceController,
-            subscriptionController: subscriptionController
+            chatAppearanceController: chatAppearanceController
         )
     }
 }

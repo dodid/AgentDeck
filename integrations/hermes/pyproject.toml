@@ -7,7 +7,7 @@ name = "r2-relay-adapter"
 version = "0.1.0"
 description = "External Hermes platform adapter for the AgentDeck R2 relay"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 dependencies = [
   "boto3>=1.34.0",
   "PyYAML>=6.0.0",

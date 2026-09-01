@@ -11,6 +11,11 @@
 
 `r2-relay-channel` is an OpenClaw channel plugin that uses Cloudflare R2 as a lightweight relay layer for chat delivery.
 
+AgentDeck is the companion iOS app. The complete app and plugin source is fully
+open source under the MIT License. Build AgentDeck for free from the
+[repository](https://github.com/dodid/AgentDeck), or install the signed public
+app from the App Store as a paid app by searching for **AgentDeck**.
+
 It is designed for setups where an OpenClaw server publishes session metadata and exchanges messages through an object-store-backed protocol instead of a conventional always-on websocket or direct mobile push transport.
 
 ### Why this exists
@@ -36,7 +41,7 @@ OpenClaw's plugin code-safety audit may warn that this plugin reads local files 
 Install directly from ClawHub by plugin id:
 
 ```bash
-openclaw plugins install r2-relay-channel
+openclaw plugins install clawhub:r2-relay-channel
 openclaw gateway restart
 ```
 
@@ -60,12 +65,11 @@ The wizard suggests a short random server ID candidate automatically, and you ca
 
 ### Install AgentDeck on iOS
 
-To use this relay from iPhone or iPad, install AgentDeck via TestFlight:
+To use this relay from iPhone or iPad, install AgentDeck from the App Store by
+searching for **AgentDeck**. For a free self-built version, follow the
+[iOS build instructions](../../apps/ios/README.md).
 
-1. On your iOS device, open: https://testflight.apple.com/join/4941GHDE
-2. Accept the TestFlight invitation.
-3. Install AgentDeck from TestFlight.
-4. Open AgentDeck and enter the same R2 connection details you configured for this plugin.
+Open AgentDeck and enter the same R2 connection details you configured for this plugin.
 
 ### `/session-target` command
 
@@ -183,7 +187,7 @@ openclaw gateway restart
 通过 ClawHub 使用插件 ID 直接安装：
 
 ```bash
-openclaw plugins install r2-relay-channel
+openclaw plugins install clawhub:r2-relay-channel
 openclaw gateway restart
 ```
 
@@ -207,12 +211,11 @@ OpenClaw 应显示 `R2 Relay` 的通道配置流程，并提示你输入：
 
 ### 在 iOS 上安装 AgentDeck
 
-若要在 iPhone 或 iPad 上使用这个 relay，请通过 TestFlight 安装 AgentDeck：
+若要在 iPhone 或 iPad 上使用这个 relay，请在 App Store 中搜索
+**AgentDeck** 并安装。你也可以按照
+[iOS 构建说明](../../apps/ios/README.md) 免费自行构建。
 
-1. 在 iOS 设备上打开：https://testflight.apple.com/join/4941GHDE
-2. 接受 TestFlight 邀请。
-3. 在 TestFlight 中安装 AgentDeck。
-4. 打开 AgentDeck，并填写与本插件一致的 R2 连接信息。
+打开 AgentDeck，并填写与本插件一致的 R2 连接信息。
 
 ### `/session-target` 命令
 

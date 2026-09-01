@@ -47,16 +47,33 @@ Dependency updates are merged only after the relevant checks pass.
 
 ## Distribution
 
-Xcode Cloud owns signing and distribution. GitHub Actions does not store Apple credentials or produce signed applications.
+Xcode Cloud owns iOS signing and distribution. GitHub Actions publishes the
+platform packages to their official registries; it does not store Apple signing
+material.
 
 The release sequence is:
 
 1. Merge a commit with all required GitHub checks passing.
 2. Confirm upstream canaries are green or that known failures are understood.
 3. Run release-candidate validation for OpenClaw and Hermes.
-4. Create an `ios-v*` tag.
-5. Let Xcode Cloud archive and distribute the build to an internal TestFlight group.
-6. Validate discovery, messaging, streaming, reactions, approvals, persistence, and attachments.
-7. Submit the selected build to App Review manually.
+4. Create a `plugins-v*` tag to publish the OpenClaw and Hermes packages.
+5. Verify installation from ClawHub and PyPI in clean environments.
+6. Create an `ios-v*` tag and let Xcode Cloud archive and distribute the app to TestFlight.
+7. Validate discovery, messaging, streaming, reactions, approvals, persistence, and attachments.
+8. Submit the selected iOS build to App Review manually.
 
-Signed distribution remains a deliberate release action; dependency and canary workflows cannot publish an app.
+End users install the OpenClaw integration from ClawHub and the Hermes integration
+from PyPI. GitHub remains the source and CI host, not an end-user installation
+endpoint. Signed iOS distribution remains a deliberate release action.
+
+### Release credentials
+
+The `release` environment used by `.github/workflows/plugin-release.yml` must
+provide `NPM_TOKEN` and `CLAWHUB_TOKEN`. Configure PyPI trusted publishing for
+this repository and workflow so the PyPI job uses GitHub's OIDC token and needs
+no PyPI secret. Protect the `release` environment with required approval.
+
+The first ClawHub publication and its trusted-publisher configuration are manual
+registry setup. After that, a `plugins-v*` tag runs validation, publishes the npm
+and ClawHub OpenClaw artifacts, and publishes the Hermes wheel and source
+distribution to PyPI.

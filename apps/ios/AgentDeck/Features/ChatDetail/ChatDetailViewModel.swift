@@ -28,8 +28,6 @@ final class ChatDetailViewModel {
     var isFetchingMessages = false
     var didRecentlyFetchMessages = false
     var appearanceRenderToken: Int = 0
-    var requiresAgentSubscription = false
-    var showingPaywall = false
     var approvalStates: [String: ApprovalCardState] = [:]
 
     var hasSuggestions: Bool {
@@ -40,14 +38,7 @@ final class ChatDetailViewModel {
         !draftText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !draftAttachments.isEmpty
     }
 
-    var isInteractionLocked: Bool {
-        requiresAgentSubscription && !environment.subscriptionController.hasUnlockedAgentAccess
-    }
-
     var composerPlaceholder: String {
-        if isInteractionLocked {
-            return String(localized: "Upgrade to chat with this agent")
-        }
         return hasSuggestions ? String(localized: "Type a command…") : String(localized: "Message…")
     }
 
@@ -67,7 +58,6 @@ final class ChatDetailViewModel {
             if let chatRepository = environment.chatRepository as? DefaultChatRepository {
                 if let session = try? await chatRepository.session(sessionID) {
                     self.title = session.displayLabelParts(gatewayDisplayName: nil)
-                    self.requiresAgentSubscription = session.requiresAgentSubscription
                 }
 
                 let sections = chatRepository.observeSessionSections()
@@ -76,13 +66,11 @@ final class ChatDetailViewModel {
                         section.sessions.contains(where: { $0.id == sessionID })
                     }), let session = section.sessions.first(where: { $0.id == sessionID }) {
                         self.title = session.displayLabelParts(gatewayDisplayName: section.gateway.displayName)
-                        self.requiresAgentSubscription = session.requiresAgentSubscription
                         self.platform = section.gateway.softwareID
                         self.availableModels = section.gateway.availableModels
                         self.updateSuggestions()
                     } else if let session = try? await chatRepository.session(sessionID) {
                         self.title = session.displayLabelParts(gatewayDisplayName: nil)
-                        self.requiresAgentSubscription = session.requiresAgentSubscription
                         if self.availableModels.isEmpty {
                             self.updateSuggestions()
                         }
@@ -144,10 +132,6 @@ final class ChatDetailViewModel {
             stopDictation()
         }
         guard !isSending else { return }
-        guard !isInteractionLocked else {
-            showingPaywall = true
-            return
-        }
         let trimmed = draftText.trimmingCharacters(in: .whitespacesAndNewlines)
         let attachments = draftAttachments
         guard !trimmed.isEmpty || !attachments.isEmpty else { return }
@@ -322,18 +306,7 @@ final class ChatDetailViewModel {
         }
     }
 
-    func requestComposerAccess() {
-        if isInteractionLocked {
-            showingPaywall = true
-        }
-    }
-
     func toggleDictation() {
-        guard !isInteractionLocked else {
-            requestComposerAccess()
-            return
-        }
-
         if isDictating {
             stopDictation()
         } else {

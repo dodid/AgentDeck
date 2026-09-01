@@ -21,6 +21,11 @@
   },
   "author": "Wei Wu",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dodid/AgentDeck.git",
+    "directory": "integrations/openclaw"
+  },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1119.0",
     "@aws-sdk/s3-request-presigner": "3.1119.0",

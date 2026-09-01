@@ -108,11 +108,6 @@ struct ChatListView: View {
                     secondaryColor: AppTheme.text
                 )
                 Spacer(minLength: 8)
-                if row.requiresSubscription && !viewModel.environment.subscriptionController.hasUnlockedAgentAccess {
-                    Image(systemName: "lock.fill")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(AppTheme.yellow)
-                }
                 Text(row.timestampText)
                     .font(.caption)
                     .foregroundStyle(isSelected ? AppTheme.text.opacity(0.82) : AppTheme.dim)

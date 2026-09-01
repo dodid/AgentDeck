@@ -1,17 +1,16 @@
 # Install
 
-Install AgentDeck's Hermes platform plugin through Hermes:
+Install AgentDeck's Hermes platform plugin from PyPI:
 
 ```bash
-hermes plugins install dodid/AgentDeck/integrations/hermes --enable
-uv pip install --python ~/.hermes/hermes-agent/venv/bin/python "boto3>=1.34.0"
+python -m pip install --upgrade r2-relay-adapter
+hermes plugins enable r2-relay
 hermes gateway restart
 ```
 
-The first command uses Hermes's supported monorepo-subdirectory plugin install,
-prompts for required values, and records the source for future `plugins update`
-and `plugins remove` operations. Hermes Git plugins do not install Python
-dependencies, so `boto3` must be installed into the same environment as Hermes.
+Install the package into the same Python environment that runs Hermes. The
+package declares `boto3` and `PyYAML` as runtime dependencies and exposes the
+`r2-relay` Hermes entry point.
 
 Minimum required R2 relay credentials in `~/.hermes/.env`:
 

@@ -67,7 +67,6 @@ struct AppRootView: View {
         .task {
             await coordinator.bootstrap()
             await environment.chatAppearanceController.load()
-            await environment.subscriptionController.start()
             await themeController.load()
             await handleScenePhase(scenePhase)
         }
@@ -90,7 +89,6 @@ struct AppRootView: View {
             await environment.syncRepository.requestImmediateSync(reason: .foreground)
             try? await environment.discoveryRepository.refreshGateways(force: false)
             await environment.chatAppearanceController.load()
-            await environment.subscriptionController.refreshEntitlements()
             await themeController.load()
         case .inactive:
             break
