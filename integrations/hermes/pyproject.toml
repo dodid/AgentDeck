@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "r2-relay-adapter"
-version = "0.1.0"
+version = "0.1.1"
 description = "External Hermes platform adapter for the AgentDeck R2 relay"
 readme = "README.md"
 requires-python = ">=3.12"
