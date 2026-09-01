@@ -250,6 +250,9 @@
 "Ref: %@" = "Réf. : %@";
 "Attachment file is missing: %@" = "Le fichier de la pièce jointe est introuvable : %@";
 "Attachment file could not be read: %@" = "Le fichier de la pièce jointe n’a pas pu être lu : %@";
+"Speech recognition is currently unavailable." = "La reconnaissance vocale est actuellement indisponible.";
+"Microphone access is required to dictate messages." = "L’accès au microphone est nécessaire pour dicter des messages.";
+"Speech recognition access is required to dictate messages." = "L’accès à la reconnaissance vocale est nécessaire pour dicter des messages.";
 "Start voice input" = "Démarrer la saisie vocale";
 "Stop voice input" = "Arrêter la saisie vocale";
 "Copy code block." = "Copier le bloc de code.";

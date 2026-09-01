@@ -250,6 +250,9 @@
 "Ref: %@" = "المرجع: %@";
 "Attachment file is missing: %@" = "ملف المرفق مفقود: %@";
 "Attachment file could not be read: %@" = "تعذر قراءة ملف المرفق: %@";
+"Speech recognition is currently unavailable." = "التعرف على الكلام غير متاح حاليًا.";
+"Microphone access is required to dictate messages." = "يلزم الوصول إلى الميكروفون لإملاء الرسائل.";
+"Speech recognition access is required to dictate messages." = "يلزم الوصول إلى التعرف على الكلام لإملاء الرسائل.";
 "Start voice input" = "بدء الإدخال الصوتي";
 "Stop voice input" = "إيقاف الإدخال الصوتي";
 "Copy code block." = "انسخ كتلة الشيفرة.";

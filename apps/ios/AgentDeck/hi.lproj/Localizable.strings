@@ -250,6 +250,9 @@
 "Ref: %@" = "संदर्भ: %@";
 "Attachment file is missing: %@" = "अटैचमेंट फ़ाइल गायब है: %@";
 "Attachment file could not be read: %@" = "अटैचमेंट फ़ाइल पढ़ी नहीं जा सकी: %@";
+"Speech recognition is currently unavailable." = "वाक् पहचान अभी उपलब्ध नहीं है।";
+"Microphone access is required to dictate messages." = "संदेश बोलकर लिखने के लिए माइक्रोफ़ोन की अनुमति आवश्यक है।";
+"Speech recognition access is required to dictate messages." = "संदेश बोलकर लिखने के लिए वाक् पहचान की अनुमति आवश्यक है।";
 "Start voice input" = "वॉइस इनपुट शुरू करें";
 "Stop voice input" = "वॉइस इनपुट रोकें";
 "Copy code block." = "कोड ब्लॉक कॉपी करें।";

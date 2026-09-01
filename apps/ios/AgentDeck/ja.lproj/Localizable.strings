@@ -250,6 +250,9 @@
 "Ref: %@" = "参照: %@";
 "Attachment file is missing: %@" = "添付ファイルが見つかりません: %@";
 "Attachment file could not be read: %@" = "添付ファイルを読み込めませんでした: %@";
+"Speech recognition is currently unavailable." = "現在、音声認識を利用できません。";
+"Microphone access is required to dictate messages." = "メッセージを音声入力するにはマイクへのアクセスが必要です。";
+"Speech recognition access is required to dictate messages." = "メッセージを音声入力するには音声認識へのアクセスが必要です。";
 "Start voice input" = "音声入力を開始";
 "Stop voice input" = "音声入力を停止";
 "Copy code block." = "コードブロックをコピーします。";
