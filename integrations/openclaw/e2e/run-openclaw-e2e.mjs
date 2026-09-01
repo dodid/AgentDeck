@@ -324,7 +324,7 @@ async function sendFileAttachmentViaOpenClaw(fixturePath) {
     const result = await runOpenClaw(args, { allowFailure: true });
     if (result.code === 0) {
       writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
-      return;
+      return null;
     }
     attempts.push(`exit=${result.code}\n${result.stdout}${result.stderr}`);
     if (!/Unknown channel|supported file attachment flag/i.test(`${result.stdout}\n${result.stderr}`)) {
@@ -334,15 +334,14 @@ async function sendFileAttachmentViaOpenClaw(fixturePath) {
   if (cliSurfaceUnsupported) {
     // Newer OpenClaw releases no longer expose third-party channel IDs through
     // `message send`; preserve the authenticated plugin media path instead.
-    await sendWebhookAttachmentReply(fixturePath, {
+    attempts.push("fallback=authenticated channel webhook");
+    writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
+    return await sendWebhookAttachmentReply(fixturePath, {
       text: fileAttachmentCaption,
       jobId: "e2e-file-attachment-platform-fallback",
       requestArtifactName: "file-send-webhook-fallback-request.json",
       responseArtifactName: "file-send-webhook-fallback-response.json",
     });
-    attempts.push("fallback=authenticated channel webhook");
-    writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
-    return;
   }
   writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
   throw new Error("openclaw message send did not accept any supported file attachment flag.");
@@ -386,6 +385,11 @@ async function sendWebhookAttachmentReply(fixturePath, options = {}) {
     body: raw,
   }, null, 2));
   assert.ok(response.ok, `webhook attachment delivery failed with status ${response.status}: ${raw}`);
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
 }
 
 function startGateway() {
@@ -479,11 +483,18 @@ async function collectNewAssistantReplyWithBody(client, sinceHeadKey, descriptio
   }, { timeoutMs: options.timeoutMs ?? 240_000, intervalMs: 1000 });
 }
 
-async function collectNewAssistantAttachmentReply(client, sinceHeadKey, expectedPattern, description) {
+async function collectNewAssistantAttachmentReply(
+  client,
+  sinceHeadKey,
+  expectedPattern,
+  description,
+  expectedMessageId = null,
+) {
   return await waitFor(description, async () => {
     const chain = await client.collectChain(clientPeer, sinceHeadKey);
     return chain.messages.find((entry) =>
       entry.message.from === serverId &&
+      (!expectedMessageId || entry.message.msg_id === expectedMessageId) &&
       entry.message.content?.type === "text" &&
       Array.isArray(entry.message.content.attachments) &&
       entry.message.content.attachments.length > 0 &&
@@ -717,7 +728,7 @@ async function main() {
       serverAttachmentRequest.key,
       `processed marker for server attachment request ${serverAttachmentRequest.key}`,
     );
-    await sendWebhookAttachmentReply(fileFixture.fixturePath, {
+    const serverAttachmentDelivery = await sendWebhookAttachmentReply(fileFixture.fixturePath, {
       text: `${serverResponseAttachmentCaption} ${serverResponseAttachmentToken}`,
       jobId: "e2e-server-attachment-response",
       requestArtifactName: "server-attachment-response-request.json",
@@ -728,6 +739,7 @@ async function main() {
       beforeServerAttachmentReplyHead,
       new RegExp(serverResponseAttachmentToken.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
       `server attachment reply to ${clientPeer}`,
+      serverAttachmentDelivery?.messageId ?? null,
     );
     assertServerRelayMessage(
       serverAttachmentReply,
@@ -760,12 +772,13 @@ async function main() {
       route,
     });
     await waitForProcessed(client, fileRequest.key, `processed marker for file request ${fileRequest.key}`);
-    await sendFileAttachmentViaOpenClaw(fileFixture.fixturePath);
+    const fileDelivery = await sendFileAttachmentViaOpenClaw(fileFixture.fixturePath);
     const fileReply = await collectNewAssistantAttachmentReply(
       client,
       beforeFileHead,
       new RegExp(fileAttachmentCaption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
       `file attachment reply to ${clientPeer}`,
+      fileDelivery?.messageId ?? null,
     );
     assertServerRelayMessage(fileReply, new RegExp(fileAttachmentCaption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     const fileAttachment = fileReply.message.content.attachments?.[0];
@@ -794,12 +807,13 @@ async function main() {
       route,
     });
     await waitForProcessed(client, webhookFileRequest.key, `processed marker for webhook file request ${webhookFileRequest.key}`);
-    await sendWebhookAttachmentReply(fileFixture.fixturePath);
+    const webhookFileDelivery = await sendWebhookAttachmentReply(fileFixture.fixturePath);
     const webhookFileReply = await collectNewAssistantAttachmentReply(
       client,
       beforeWebhookFileHead,
       new RegExp(webhookFileAttachmentCaption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
       `webhook file attachment reply to ${clientPeer}`,
+      webhookFileDelivery?.messageId ?? null,
     );
     assertServerRelayMessage(webhookFileReply, new RegExp(webhookFileAttachmentCaption.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     const webhookFileAttachment = webhookFileReply.message.content.attachments?.[0];
