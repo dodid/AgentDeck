@@ -561,8 +561,8 @@ async function main() {
   } else {
     await configureModelProvider();
   }
-  await disableUnrelatedBundledPlugins();
   await installPlugin();
+  await disableUnrelatedBundledPlugins();
   await configureRelayChannel();
   const fileFixture = stageFileAttachmentFixture();
 
