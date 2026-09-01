@@ -330,12 +330,17 @@ export async function dispatchInboundMessage(params: {
           textHasMediaDirective: text.includes("MEDIA:"),
         });
         if (streamState.active && text.trim().length > 0) {
-          if (streamState.lastText && !text.startsWith(streamState.lastText)) {
-            return;
-          }
           streamState.lastText = text;
           streamState.lastEmitAt = Date.now();
         }
+
+        const finalStream = streamState.active
+          ? {
+              stream_id: streamState.streamId,
+              seq: streamState.seq + 1,
+              state: "final" as const,
+            }
+          : undefined;
 
         try {
           await sendRelayPayloadMessage({
@@ -354,6 +359,7 @@ export async function dispatchInboundMessage(params: {
             meta: {
               route: outboundMeta.route,
               workspaceDir: resolveAgentWorkspaceDirFromConfig(params.cfg as Record<string, unknown>, route.agentId),
+              stream: finalStream,
             },
           });
           emitRelayDebug(params.log, `[${params.account.accountId}] sent relay final reply`, {

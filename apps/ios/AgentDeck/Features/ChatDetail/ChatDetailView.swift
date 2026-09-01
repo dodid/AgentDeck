@@ -261,7 +261,8 @@ struct ChatDetailView: View {
                     busyAttachmentID: busyAttachmentID,
                     onAttachmentTap: handleAttachmentTap,
                     onAttachmentShare: handleAttachmentShare,
-                    onAttachmentRetry: handleAttachmentRetry
+                    onAttachmentRetry: handleAttachmentRetry,
+                    onMessageRetry: handleMessageRetry
                 ) { decision in
                     Task { await viewModel.sendApproval(decision, for: message) }
                 }
@@ -275,7 +276,8 @@ struct ChatDetailView: View {
                     busyAttachmentID: busyAttachmentID,
                     onAttachmentTap: handleAttachmentTap,
                     onAttachmentShare: handleAttachmentShare,
-                    onAttachmentRetry: handleAttachmentRetry
+                    onAttachmentRetry: handleAttachmentRetry,
+                    onMessageRetry: handleMessageRetry
                 ) { decision in
                     Task { await viewModel.sendApproval(decision, for: message) }
                 }
@@ -296,6 +298,12 @@ struct ChatDetailView: View {
     private func handleAttachmentRetry(_ attachment: TranscriptAttachmentViewData) {
         Task {
             await viewModel.retryMessage(attachment.messageID)
+        }
+    }
+
+    private func handleMessageRetry(_ messageID: String) {
+        Task {
+            await viewModel.retryMessage(messageID)
         }
     }
 

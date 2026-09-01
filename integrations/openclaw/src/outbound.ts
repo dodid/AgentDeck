@@ -30,6 +30,11 @@ export async function sendRelayPayloadMessage(params: {
     mediaAccess?: OutboundMediaAccess;
     mediaLocalRoots?: readonly string[];
     mediaReadFile?: (filePath: string) => Promise<Buffer>;
+    stream?: {
+      stream_id: string;
+      seq: number;
+      state: "partial" | "final";
+    };
   };
 }) {
   const account = resolveR2RelayAccount({ cfg: params.cfg as never, accountId: params.accountId });
@@ -88,6 +93,7 @@ export async function sendRelayPayloadMessage(params: {
   const result = await service.sendMessage(target.peer, {
     route,
     content: relayContentFromPayload(fallbackText, attachments, params.payload.channelData),
+    delivery: params.meta?.stream ? { stream: params.meta.stream } : undefined,
   });
   emitRelayDebug(params.log, `[${account.accountId}] outbound relay message sent`, {
     source: params.source ?? "unknown",

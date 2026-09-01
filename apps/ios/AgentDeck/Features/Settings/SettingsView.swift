@@ -8,14 +8,10 @@ struct SettingsView: View {
 
     var body: some View {
         List {
-            Section("Connection") {
+            Section {
                 CopyableSettingRow(icon: "externaldrive.connected.to.line.below", title: "Bucket", value: viewModel.bucketSummary)
                 CopyableSettingRow(icon: "network", title: "Endpoint", value: viewModel.endpointSummary)
                 CopyableSettingRow(icon: "iphone", title: "Device", value: viewModel.deviceSummary.isEmpty ? String(localized: "Unknown") : viewModel.deviceSummary)
-            }
-            .listRowBackground(AppTheme.panel)
-
-            Section {
                 MenuSettingRow(
                     icon: "arrow.triangle.2.circlepath",
                     title: "Message fetching",
@@ -29,9 +25,7 @@ struct SettingsView: View {
                     }
                 )
             } header: {
-                Text("Sync")
-            } footer: {
-                Text(fetchFrequencyDescription)
+                Text("Connection")
             }
             .listRowBackground(AppTheme.panel)
 
@@ -178,13 +172,6 @@ struct SettingsView: View {
 
     private var attachmentStorageLabel: String {
         fileSizeLabel(viewModel.storageStats.attachmentDataSizeBytes)
-    }
-
-    private var fetchFrequencyDescription: String {
-        String.localizedStringWithFormat(
-            String(localized: "While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests."),
-            Int64(viewModel.messageFetchPreset.approximateFetchesPerHour)
-        )
     }
 
     private func fileSizeLabel(_ bytes: Int64) -> String {

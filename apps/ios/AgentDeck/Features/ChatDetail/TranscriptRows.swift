@@ -19,7 +19,7 @@ struct TranscriptRows {
     }
 
     @ViewBuilder
-    static func bubbleRow(_ item: TranscriptItemViewData, style: ChatAppearanceStyle, approvalState: ApprovalCardState, transitionNamespace: Namespace.ID, selectedAttachmentID: String?, busyAttachmentID: String?, onAttachmentTap: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentShare: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentRetry: @escaping (TranscriptAttachmentViewData) -> Void, onApprovalDecision: @escaping (ApprovalDecision) -> Void) -> some View {
+    static func bubbleRow(_ item: TranscriptItemViewData, style: ChatAppearanceStyle, approvalState: ApprovalCardState, transitionNamespace: Namespace.ID, selectedAttachmentID: String?, busyAttachmentID: String?, onAttachmentTap: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentShare: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentRetry: @escaping (TranscriptAttachmentViewData) -> Void, onMessageRetry: @escaping (String) -> Void, onApprovalDecision: @escaping (ApprovalDecision) -> Void) -> some View {
         let isUser = item.isFromUser
         let roleAccent = isUser ? AppTheme.blue : AppTheme.assistantAccent
         let bubbleBackground = bubbleBackground(for: item)
@@ -81,11 +81,7 @@ struct TranscriptRows {
                 )
 
                 if isUser, let failure = conciseFailureText(from: item) {
-                    Text(failure)
-                        .lineLimit(1)
-                        .truncationMode(.tail)
-                        .font(style.statusFont)
-                        .foregroundStyle(AppTheme.red)
+                    failedMessageStatusView(item: item, failure: failure, style: style, onRetry: onMessageRetry)
                         .padding(.horizontal, style.scaled(6))
                         .transition(.opacity)
                 }
@@ -100,7 +96,7 @@ struct TranscriptRows {
     }
 
     @ViewBuilder
-    static func terminalRow(_ item: TranscriptItemViewData, style: ChatAppearanceStyle, approvalState: ApprovalCardState, transitionNamespace: Namespace.ID, selectedAttachmentID: String?, busyAttachmentID: String?, onAttachmentTap: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentShare: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentRetry: @escaping (TranscriptAttachmentViewData) -> Void, onApprovalDecision: @escaping (ApprovalDecision) -> Void) -> some View {
+    static func terminalRow(_ item: TranscriptItemViewData, style: ChatAppearanceStyle, approvalState: ApprovalCardState, transitionNamespace: Namespace.ID, selectedAttachmentID: String?, busyAttachmentID: String?, onAttachmentTap: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentShare: @escaping (TranscriptAttachmentViewData) -> Void, onAttachmentRetry: @escaping (TranscriptAttachmentViewData) -> Void, onMessageRetry: @escaping (String) -> Void, onApprovalDecision: @escaping (ApprovalDecision) -> Void) -> some View {
         let isUser = item.isFromUser
         let roleColor = isUser ? AppTheme.blue : AppTheme.assistantAccent
         let topPadding = terminalTopPadding(for: item, style: style)
@@ -142,6 +138,10 @@ struct TranscriptRows {
 
             if let approval = item.execApproval, !isUser {
                 ApprovalCardView(approval: approval, state: approvalState, style: style, onDecision: onApprovalDecision)
+            }
+
+            if isUser, let failure = conciseFailureText(from: item) {
+                failedMessageStatusView(item: item, failure: failure, style: style, onRetry: onMessageRetry)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -395,6 +395,24 @@ struct TranscriptRows {
             .foregroundStyle(AppTheme.red)
         } else if item.showsDeliveryStatus {
             outgoingStatusIcon(for: item, style: style)
+        }
+    }
+
+    private static func failedMessageStatusView(item: TranscriptItemViewData, failure: String, style: ChatAppearanceStyle, onRetry: @escaping (String) -> Void) -> some View {
+        HStack(spacing: style.scaled(8)) {
+            Text(failure)
+                .lineLimit(1)
+                .truncationMode(.tail)
+                .font(style.statusFont)
+                .foregroundStyle(AppTheme.red)
+            Button {
+                onRetry(item.id)
+            } label: {
+                Label(String(localized: "Retry"), systemImage: "arrow.clockwise")
+                    .font(style.statusFont.weight(.semibold))
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(AppTheme.blue)
         }
     }
 

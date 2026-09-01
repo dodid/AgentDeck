@@ -97,7 +97,7 @@ final class ViewModelFlowTests: XCTestCase {
         await model.updateMessageFetchPreset(.responsive)
 
         XCTAssertEqual(model.messageFetchPreset, .responsive)
-        XCTAssertEqual(environment.syncActivityStore.preferredPollingIntervalSeconds, 5)
+        XCTAssertEqual(environment.syncActivityStore.preferredPollingIntervalSeconds, 2)
     }
 
     func testChatListRefreshSurfacesAndClearsDiscoveryFailures() async {

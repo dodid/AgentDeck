@@ -193,7 +193,7 @@ def collect_wizard_values(existing: Mapping[str, str]) -> tuple[dict[str, str], 
         )
         values["R2_RELAY_POLL_INTERVAL_MS"] = prompt_value(
             "Poll interval ms",
-            existing.get("R2_RELAY_POLL_INTERVAL_MS", "5000"),
+            existing.get("R2_RELAY_POLL_INTERVAL_MS", "3000"),
         )
         values["R2_RELAY_BACKOFF_MAX_MS"] = prompt_value(
             "Backoff max ms",

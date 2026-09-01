@@ -77,6 +77,9 @@ struct ChatListView: View {
             sessionRowLabel(for: row)
                 .contentShape(Rectangle())
                 .tag(row.id)
+                .onTapGesture {
+                    selectedSessionID?.wrappedValue = row.id
+                }
         } else if let openSession {
             Button {
                 openSession(row.id)
@@ -132,6 +135,7 @@ struct ChatListView: View {
         }
         .padding(.vertical, 4)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
     }
 
     private func isSelected(_ row: ChatListRowViewData) -> Bool {

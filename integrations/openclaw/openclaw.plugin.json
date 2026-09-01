@@ -13,13 +13,8 @@
         "additionalProperties": false,
         "properties": {
           "enabled": { "type": "boolean" },
-          "configFile": { "type": "string" }
-        }
-      },
-      "uiHints": {
-        "configFile": {
-          "label": "Config file",
-          "placeholder": "/path/to/r2relay.config.json"
+          "configFile": { "type": "string" },
+          "pollIntervalMs": { "type": "number" }
         }
       }
     }
@@ -33,7 +28,8 @@
         "additionalProperties": false,
         "properties": {
           "enabled": { "type": "boolean" },
-          "configFile": { "type": "string" }
+          "configFile": { "type": "string" },
+          "pollIntervalMs": { "type": "number" }
         }
       }
     }

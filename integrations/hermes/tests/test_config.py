@@ -34,7 +34,7 @@ def test_resolve_r2_relay_env_config_reads_env_only(monkeypatch):
     assert cfg.discovery_thread_id is None
     assert cfg.available_models == ()
     assert cfg.default_model is None
-    assert cfg.poll_interval_ms == 5000
+    assert cfg.poll_interval_ms == 3000
     assert cfg.backoff_max_ms == 40000
     assert cfg.config_file == ''
     assert cfg.force_path_style is True
@@ -84,6 +84,17 @@ def test_resolve_r2_relay_env_config_reads_optional_discovery_fields(monkeypatch
         'file': 400,
     }
     assert cfg.oversize_attachment_behavior == 'reject'
+
+
+def test_poll_interval_is_optional_and_clamped(monkeypatch):
+    monkeypatch.setenv('R2_RELAY_POLL_INTERVAL_MS', '1000')
+    assert resolve_r2_relay_env_config({}).poll_interval_ms == 2000
+
+    monkeypatch.setenv('R2_RELAY_POLL_INTERVAL_MS', '90000')
+    assert resolve_r2_relay_env_config({}).poll_interval_ms == 60000
+
+    monkeypatch.setenv('R2_RELAY_POLL_INTERVAL_MS', 'not-a-number')
+    assert resolve_r2_relay_env_config({}).poll_interval_ms == 3000
 
 
 def test_resolve_r2_relay_env_config_marks_missing_secret_values_unconfigured(monkeypatch):

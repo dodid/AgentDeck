@@ -26,7 +26,7 @@ Everything else is optional at the env level and will use defaults or derived va
 - `R2_RELAY_SERVER_ID` defaults from the host name
 - `R2_RELAY_DISCOVERY_CONVERSATION_ID` defaults to `main`
 - `R2_RELAY_OVERSIZE_ATTACHMENT_BEHAVIOR` defaults to `reject`
-- `R2_RELAY_POLL_INTERVAL_MS` defaults to `5000`
+- `R2_RELAY_POLL_INTERVAL_MS` defaults to `3000` and is clamped to `2000`–`60000`
 - `R2_RELAY_BACKOFF_MAX_MS` defaults to `40000`
 
 For a local AgentDeck checkout used in development, you can run the legacy

@@ -25,9 +25,9 @@ final class ChatDetailViewModel {
     var modelSuggestions: [ModelSuggestionViewData] = []
     var selectedSuggestionIndex: Int = 0
     var availableModels: [ModelDescriptor] = []
-    var isFetchingMessages = false
-    var hasFetchError = false
-    var didRecentlyFetchMessages = false
+    var isFetchingMessages: Bool { environment.syncActivityStore.isFetchingMessages }
+    var hasFetchError: Bool { environment.syncActivityStore.lastFetchErrorMessage != nil }
+    var didRecentlyFetchMessages: Bool { environment.syncActivityStore.didRecentlyFetchMessages }
     var appearanceRenderToken: Int = 0
     var approvalStates: [String: ApprovalCardState] = [:]
     private(set) var supportsAttachments = false
@@ -99,15 +99,6 @@ final class ChatDetailViewModel {
                 if self.scrollCoordinator.shouldAutoScrollAfterTranscriptUpdate() {
                     self.scrollToBottomRequestToken += 1
                 }
-            }
-        }
-
-        Task {
-            while !Task.isCancelled {
-                self.isFetchingMessages = environment.syncActivityStore.isFetchingMessages
-                self.hasFetchError = environment.syncActivityStore.lastFetchErrorMessage != nil
-                self.didRecentlyFetchMessages = environment.syncActivityStore.didRecentlyFetchMessages
-                try? await Task.sleep(for: .milliseconds(500))
             }
         }
 

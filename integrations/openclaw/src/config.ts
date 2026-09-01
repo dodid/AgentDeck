@@ -7,7 +7,9 @@ import { buildJsonChannelConfigSchema } from "openclaw/plugin-sdk/channel-config
 import type { ChannelPlugin, OpenClawConfig } from "openclaw/plugin-sdk/core";
 import { getPersistedRelayServerId } from "./runtime.js";
 
-export const DEFAULT_POLL_INTERVAL_MS = 5_000;
+export const DEFAULT_POLL_INTERVAL_MS = 3_000;
+export const MIN_POLL_INTERVAL_MS = 2_000;
+export const MAX_POLL_INTERVAL_MS = 60_000;
 export const DEFAULT_BACKOFF_MAX_MS = 40_000;
 export const DEFAULT_TTL_DAYS = 7;
 export const DEFAULT_IDENTITY_TTL_DAYS = 1;
@@ -27,7 +29,7 @@ export const R2RelaySidecarConfigSchema = z.object({
   accessKeyId: z.string().min(1),
   secretAccessKey: z.string().min(1),
   serverId: z.string().trim().min(1).optional(),
-  pollIntervalMs: z.number().int().positive().optional(),
+  pollIntervalMs: z.unknown().optional(),
   backoffMaxMs: z.number().int().positive().optional(),
   defaultTtlDays: z.number().positive().optional(),
   ttl: z.object({
@@ -45,6 +47,7 @@ export const r2RelayChannelConfigSchema: NonNullable<ChannelPlugin["configSchema
     properties: {
       enabled: { type: "boolean" },
       configFile: { type: "string", minLength: 1 },
+      pollIntervalMs: { type: "number" },
     },
   });
 
@@ -134,6 +137,13 @@ export function loadR2RelaySidecarConfig(configFile: string): R2RelayAccountConf
   }
 }
 
+export function normalizePollIntervalMs(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return DEFAULT_POLL_INTERVAL_MS;
+  }
+  return Math.min(MAX_POLL_INTERVAL_MS, Math.max(MIN_POLL_INTERVAL_MS, Math.round(value)));
+}
+
 export function resolveR2RelayAccount(params: {
   cfg: OpenClawConfig;
   accountId?: string | null;
@@ -142,11 +152,20 @@ export function resolveR2RelayAccount(params: {
   const configFile = resolveRelayConfigFilePath(relayCfg.configFile);
   const rawFileCfg = loadR2RelaySidecarConfig(configFile);
   const parsedFileCfg = R2RelaySidecarConfigSchema.safeParse(rawFileCfg);
-  const fileCfg: R2RelayAccountConfig = parsedFileCfg.success ? parsedFileCfg.data : {};
+  let fileCfg: R2RelayAccountConfig = {};
+  if (parsedFileCfg.success) {
+    fileCfg = {
+      ...parsedFileCfg.data,
+      pollIntervalMs: typeof parsedFileCfg.data.pollIntervalMs === "number"
+        ? parsedFileCfg.data.pollIntervalMs
+        : undefined,
+    };
+  }
   const mergedCfg: R2RelayAccountConfig = {
     ...fileCfg,
     enabled: relayCfg.enabled ?? fileCfg.enabled,
     configFile,
+    pollIntervalMs: relayCfg.pollIntervalMs ?? fileCfg.pollIntervalMs,
   };
   const endpoint = mergedCfg.endpoint?.trim() ?? "";
   const bucket = mergedCfg.bucket?.trim() ?? "";
@@ -173,7 +192,7 @@ export function resolveR2RelayAccount(params: {
     serverId: normalizeServerId(mergedCfg.serverId) ?? resolveDefaultServerId(params.cfg),
     region: DEFAULT_REGION,
     forcePathStyle: DEFAULT_FORCE_PATH_STYLE,
-    pollIntervalMs: mergedCfg.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS,
+    pollIntervalMs: normalizePollIntervalMs(mergedCfg.pollIntervalMs),
     backoffMaxMs: mergedCfg.backoffMaxMs ?? DEFAULT_BACKOFF_MAX_MS,
     defaultTtlDays: mergedCfg.defaultTtlDays ?? DEFAULT_TTL_DAYS,
     ttl,

@@ -8,7 +8,9 @@ import socket
 from dataclasses import dataclass
 from typing import Any, Mapping
 
-DEFAULT_POLL_INTERVAL_MS = 5_000
+DEFAULT_POLL_INTERVAL_MS = 3_000
+MIN_POLL_INTERVAL_MS = 2_000
+MAX_POLL_INTERVAL_MS = 60_000
 DEFAULT_BACKOFF_MAX_MS = 40_000
 DEFAULT_REGION = "auto"
 DEFAULT_FORCE_PATH_STYLE = True
@@ -115,6 +117,17 @@ def _env_int(name: str, default: int) -> int:
     return value if value > 0 else default
 
 
+def _env_clamped_int(name: str, default: int, minimum: int, maximum: int) -> int:
+    raw = os.getenv(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = int(raw)
+    except ValueError:
+        return default
+    return min(maximum, max(minimum, value))
+
+
 def _env_bool(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     return _coerce_bool(raw, default=default)
@@ -186,7 +199,12 @@ def resolve_r2_relay_env_config(extra: Mapping[str, Any] | None = None) -> R2Rel
     secret_access_key = os.getenv("R2_RELAY_SECRET_ACCESS_KEY", "").strip()
     server_id = normalize_server_id(os.getenv("R2_RELAY_SERVER_ID")) or resolve_default_server_id()
     display_name = _env_optional_text('R2_RELAY_DISPLAY_NAME') or derive_default_display_name(server_id)
-    poll_interval_ms = _env_int("R2_RELAY_POLL_INTERVAL_MS", DEFAULT_POLL_INTERVAL_MS)
+    poll_interval_ms = _env_clamped_int(
+        "R2_RELAY_POLL_INTERVAL_MS",
+        DEFAULT_POLL_INTERVAL_MS,
+        MIN_POLL_INTERVAL_MS,
+        MAX_POLL_INTERVAL_MS,
+    )
     backoff_max_ms = _env_int("R2_RELAY_BACKOFF_MAX_MS", DEFAULT_BACKOFF_MAX_MS)
     configured = all((endpoint, bucket, access_key_id, secret_access_key))
     discovery_conversation_id = _env_optional_text('R2_RELAY_DISCOVERY_CONVERSATION_ID') or 'main'

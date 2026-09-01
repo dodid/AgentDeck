@@ -30,7 +30,7 @@ from .install_manifest import PLATFORM_NAME
 try:
     PACKAGE_VERSION = version('r2-relay-adapter')
 except PackageNotFoundError:  # pragma: no cover - local editable/uninstalled checkout
-    PACKAGE_VERSION = '0.1.0'
+    PACKAGE_VERSION = '0.1.2'
 
 
 logger = logging.getLogger(__name__)
@@ -232,6 +232,7 @@ class R2RelayAdapter(BasePlatformAdapter):
                 logger.debug('relay polling task cancelled server_id=%s', self._relay_config.server_id)
             finally:
                 self._poll_task = None
+        self._stream_sessions.clear()
         self._mark_disconnected()
         logger.info('relay adapter disconnected server_id=%s', self._relay_config.server_id)
 
@@ -526,6 +527,31 @@ class R2RelayAdapter(BasePlatformAdapter):
         )
         await self.handle_message(event)
         logger.debug('handled inbound relay message key=%s message_id=%s', key, msg.get('msg_id'))
+
+        message_id = str(msg.get('msg_id') or '').strip()
+        if message_id and peer:
+            try:
+                acknowledgement = build_send_options(
+                    str(conversation_id) if conversation_id else None,
+                    '',
+                    metadata={
+                        'agent_id': route.get('agent_id') or 'main',
+                        'instance_id': route.get('instance_id'),
+                        'content_type': 'reaction',
+                        'reaction_target_message_id': message_id,
+                        'reaction_emoji': '✅',
+                        'reaction_remove': False,
+                    },
+                )
+                await self.service.send_message(peer, acknowledgement)
+                logger.debug('sent inbound delivery acknowledgement message_id=%s peer=%s', message_id, peer)
+            except Exception as exc:
+                logger.warning(
+                    'failed to send inbound delivery acknowledgement message_id=%s peer=%s: %s',
+                    message_id,
+                    peer,
+                    exc,
+                )
 
     async def _resolve_inbound_media(self, attachments: list[dict[str, Any]]) -> tuple[list[str], list[str]]:
         media_urls: list[str] = []

@@ -23,6 +23,7 @@ class PollingServiceStub:
     def __init__(self, message):
         self.message = message
         self.fetched = {}
+        self.sent = []
 
     async def publish_identity(self, payload=None):
         return payload
@@ -34,6 +35,10 @@ class PollingServiceStub:
     async def fetch_attachment(self, key, **kwargs):
         del kwargs
         return self.fetched.get(key)
+
+    async def send_message(self, recipient, options):
+        self.sent.append((recipient, options))
+        return {"message_id": "ack-1", "key": "msg/phone-1/ack.json"}
 
 
 async def collect_event(message, configure=None):
@@ -55,6 +60,7 @@ async def collect_event(message, configure=None):
 
 @pytest.mark.asyncio
 async def test_polling_converts_v3_text_message(relay_env):
+    services = []
     event = await collect_event(
         {
             "msg_id": "incoming-1",
@@ -64,10 +70,19 @@ async def test_polling_converts_v3_text_message(relay_env):
             "prev_key": None,
             "route": {"agent_id": "main", "conversation_id": "conversation-1"},
             "content": {"type": "text", "text": "hello"},
-        }
+        },
+        services.append,
     )
     assert event.text == "hello"
     assert event.source.chat_id == "peer=phone-1,conversation=conversation-1"
+    recipient, acknowledgement = services[0].sent[0]
+    assert recipient == "phone-1"
+    assert acknowledgement["content"] == {
+        "type": "reaction",
+        "target_msg_id": "incoming-1",
+        "emoji": "✅",
+        "remove": False,
+    }
 
 
 @pytest.mark.asyncio

@@ -1,7 +1,7 @@
 name: r2-relay
 label: R2 Relay
 kind: platform
-version: 0.1.0
+version: 0.1.2
 description: >
   Cloudflare R2 relay gateway adapter for Hermes Agent.
 author: AgentDeck
@@ -72,7 +72,7 @@ optional_env:
     prompt: "Allow all users? (true/false)"
     password: false
   - name: R2_RELAY_POLL_INTERVAL_MS
-    description: "Inbox poll interval in milliseconds"
+    description: "Optional inbox poll interval in milliseconds (default 3000; clamped to 2000-60000)"
     prompt: "Poll interval ms"
     password: false
   - name: R2_RELAY_BACKOFF_MAX_MS

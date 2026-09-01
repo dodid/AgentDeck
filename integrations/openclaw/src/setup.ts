@@ -237,8 +237,6 @@ export const r2RelaySetupWizard: ChannelSetupWizard = {
   status: {
     configuredLabel: "Configured",
     unconfiguredLabel: "Not configured",
-    configuredHint: "R2 endpoint, bucket, and credentials are present.",
-    unconfiguredHint: "Add your R2 bucket details to enable the dedicated OpenClaw app flow.",
     resolveConfigured: ({ cfg }) => {
       const section = getSidecarSection(cfg);
       return Boolean(
@@ -261,7 +259,6 @@ export const r2RelaySetupWizard: ChannelSetupWizard = {
       if (section.serverId?.trim()) {
         lines.push(`Server ID: ${section.serverId.trim()}`);
       }
-      lines.push(`Config file: ${getConfigFilePath(cfg)}`);
       return lines;
     },
   },
