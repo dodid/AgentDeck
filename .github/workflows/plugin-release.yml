@@ -140,6 +140,7 @@ jobs:
   publish-hermes:
     name: Publish Hermes plugin
     needs: validate
+    if: ${{ !inputs.clawhub_only }}
     runs-on: ubuntu-latest
     environment: release
     steps:
