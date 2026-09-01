@@ -317,6 +317,7 @@ async function sendFileAttachmentViaOpenClaw(fixturePath) {
     fileAttachmentCaption,
   ];
   const attempts = [];
+  let cliSurfaceUnsupported = true;
   for (const mediaFlag of ["--media", "--file", "--attachment"]) {
     const args = [...baseArgs, mediaFlag, fixturePath];
     attempts.push(`openclaw ${args.join(" ")}`);
@@ -326,6 +327,22 @@ async function sendFileAttachmentViaOpenClaw(fixturePath) {
       return;
     }
     attempts.push(`exit=${result.code}\n${result.stdout}${result.stderr}`);
+    if (!/Unknown channel|supported file attachment flag/i.test(`${result.stdout}\n${result.stderr}`)) {
+      cliSurfaceUnsupported = false;
+    }
+  }
+  if (cliSurfaceUnsupported) {
+    // Newer OpenClaw releases no longer expose third-party channel IDs through
+    // `message send`; preserve the authenticated plugin media path instead.
+    await sendWebhookAttachmentReply(fixturePath, {
+      text: fileAttachmentCaption,
+      jobId: "e2e-file-attachment-platform-fallback",
+      requestArtifactName: "file-send-webhook-fallback-request.json",
+      responseArtifactName: "file-send-webhook-fallback-response.json",
+    });
+    attempts.push("fallback=authenticated channel webhook");
+    writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
+    return;
   }
   writeArtifact("file-send-command.txt", `${attempts.join("\n")}\n`);
   throw new Error("openclaw message send did not accept any supported file attachment flag.");
