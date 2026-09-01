@@ -5,6 +5,12 @@ on:
     tags:
       - "plugins-v*"
   workflow_dispatch:
+    inputs:
+      clawhub_only:
+        description: "Publish only the OpenClaw plugin to ClawHub"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -81,6 +87,7 @@ jobs:
   publish-openclaw:
     name: Publish OpenClaw plugin
     needs: validate
+    if: ${{ !inputs.clawhub_only }}
     runs-on: ubuntu-latest
     environment: release
     steps:
@@ -106,6 +113,26 @@ jobs:
           CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
         run: |
           npm install --global clawhub
+          clawhub login --token "$CLAWHUB_TOKEN"
+          clawhub package validate .
+          clawhub package publish . --dry-run
+          clawhub package publish .
+
+  publish-clawhub-only:
+    name: Publish OpenClaw plugin to ClawHub
+    needs: validate
+    if: ${{ inputs.clawhub_only }}
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v7
+      - name: Validate and publish to ClawHub
+        working-directory: integrations/openclaw
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          npm install --global clawhub
+          clawhub login --token "$CLAWHUB_TOKEN"
           clawhub package validate .
           clawhub package publish . --dry-run
           clawhub package publish .
