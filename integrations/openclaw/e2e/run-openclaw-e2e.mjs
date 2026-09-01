@@ -327,7 +327,7 @@ async function sendFileAttachmentViaOpenClaw(fixturePath) {
       return null;
     }
     attempts.push(`exit=${result.code}\n${result.stdout}${result.stderr}`);
-    if (!/Unknown channel|supported file attachment flag/i.test(`${result.stdout}\n${result.stderr}`)) {
+    if (!/Unknown channel|does not recognize option|supported file attachment flag/i.test(`${result.stdout}\n${result.stderr}`)) {
       cliSurfaceUnsupported = false;
     }
   }
