@@ -61,8 +61,11 @@ struct RelayMessagingService: Sendable {
         let headKey = Self.makeHeadKey(recipient: target.gatewayPeer)
         let encoder = JSONEncoder()
 
-        for _ in 0..<8 {
+        for attempt in 0..<12 {
             let currentHead = try await getHeadState(peer: target.gatewayPeer)
+            if currentHead != nil, normalizedCASMatchETag(currentHead?.etag) == nil {
+                throw RelayMessagingError.missingHeadETag
+            }
             let key = Self.makeMessageKey(recipient: target.gatewayPeer, timestampMS: Date().timeIntervalSince1970 * 1000)
 
             let message = RelayMessage(
@@ -89,8 +92,9 @@ struct RelayMessagingService: Sendable {
                     ifNoneMatch: currentHead == nil ? "*" : nil
                 )
                 return messageID
-            } catch {
-                try await Task.sleep(for: .milliseconds(Int.random(in: 20...80)))
+            } catch R2ObjectStoreError.preconditionFailed {
+                let retryCeilingMS = min(500, 25 * (1 << min(attempt, 4)))
+                try await Task.sleep(for: .milliseconds(Int.random(in: 20...retryCeilingMS)))
                 continue
             }
         }
@@ -106,7 +110,7 @@ struct RelayMessagingService: Sendable {
             return (head, [])
         }
 
-        let entries = try await walkInboxChain(startKey: head.headKey, stopBeforeKey: lastSeenKey, limit: 200)
+        let entries = try await walkInboxChain(startKey: head.headKey, stopBeforeKey: lastSeenKey)
         return (head, entries.reversed())
     }
 
@@ -136,10 +140,14 @@ struct RelayMessagingService: Sendable {
     private func walkInboxChain(startKey: String?, stopBeforeKey: String?, limit: Int? = nil) async throws -> [RelayInboxEntry] {
         var currentKey = startKey
         var entries: [RelayInboxEntry] = []
+        var visitedKeys = Set<String>()
 
         while let key = currentKey, key != stopBeforeKey {
             if let limit, entries.count >= limit { break }
-            guard let message = try await readMessage(key: key) else { break }
+            guard entries.count < 10_000, visitedKeys.insert(key).inserted,
+                  let message = try await readMessage(key: key) else {
+                throw RelayMessagingError.invalidInboxChain
+            }
             entries.append(RelayInboxEntry(key: key, message: message))
             currentKey = message.prevKey
         }
@@ -247,11 +255,17 @@ struct RelayMessagingService: Sendable {
 
 enum RelayMessagingError: LocalizedError {
     case casRetryFailed
+    case invalidInboxChain
+    case missingHeadETag
 
     var errorDescription: String? {
         switch self {
         case .casRetryFailed:
             return String(localized: "Failed to append message after relay CAS retries.")
+        case .invalidInboxChain:
+            return String(localized: "The relay inbox chain is incomplete or invalid.")
+        case .missingHeadETag:
+            return String(localized: "The relay head did not include an ETag required for a safe update.")
         }
     }
 }

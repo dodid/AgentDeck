@@ -34,6 +34,9 @@ struct TranscriptRows {
                 if item.showsHeader {
                     HStack(spacing: style.scaled(6)) {
                         if isUser {
+                            if item.showsDeliveryStatus {
+                                outgoingStatusIcon(for: item, style: style)
+                            }
                             Text(String(localized: "You"))
                                 .font(style.metadataFont)
                                 .foregroundStyle(roleAccent)
@@ -77,8 +80,12 @@ struct TranscriptRows {
                         .stroke(bubbleStroke, lineWidth: 1)
                 )
 
-                if isUser && item.showsDeliveryStatus {
-                    outgoingStatusView(for: item, style: style)
+                if isUser, let failure = conciseFailureText(from: item) {
+                    Text(failure)
+                        .lineLimit(1)
+                        .truncationMode(.tail)
+                        .font(style.statusFont)
+                        .foregroundStyle(AppTheme.red)
                         .padding(.horizontal, style.scaled(6))
                         .transition(.opacity)
                 }

@@ -351,28 +351,9 @@ nonisolated final class AppDatabase: @unchecked Sendable {
         try migrator.migrate(dbQueue)
     }
 
-    func upsertSessions(_ sections: [GatewaySection]) throws -> [SessionID] {
+    func upsertSessions(_ sections: [GatewaySection]) throws {
         let now = Self.nowMS()
-        return try dbQueue.write { db in
-            let discoveredGatewayIDs = Set(sections.map { $0.gateway.id.rawValue })
-            let existingGatewayIDs = Set(try GatewayRecord.fetchAll(db).map(\.gatewayID))
-            let removedGatewayIDs = existingGatewayIDs.subtracting(discoveredGatewayIDs)
-            let removedSessionIDs: [SessionID]
-
-            if removedGatewayIDs.isEmpty {
-                removedSessionIDs = []
-            } else {
-                removedSessionIDs = try SessionRecord.fetchAll(db)
-                    .filter { removedGatewayIDs.contains($0.gatewayID) }
-                    .map { SessionID(rawValue: $0.sessionID) }
-
-                for gatewayID in removedGatewayIDs {
-                    if let gateway = try GatewayRecord.fetchOne(db, key: gatewayID) {
-                        try gateway.delete(db)
-                    }
-                }
-            }
-
+        try dbQueue.write { db in
             for section in sections {
                 let modelsJSON = String(data: (try? JSONEncoder().encode(section.gateway.availableModels)) ?? Data("[]".utf8), encoding: .utf8) ?? "[]"
                 let gatewayRecord = GatewayRecord(
@@ -407,8 +388,6 @@ nonisolated final class AppDatabase: @unchecked Sendable {
                     try record.save(db)
                 }
             }
-
-            return removedSessionIDs
         }
     }
 

@@ -190,10 +190,7 @@ final class DefaultChatRepository: ChatRepository, @unchecked Sendable {
     }
 
     func upsertDiscoveredSections(_ sections: [GatewaySection]) async throws {
-        let removedSessionIDs = try database.upsertSessions(sections)
-        for sessionID in removedSessionIDs {
-            await transcriptStore.publish(TranscriptPage(messages: [], canLoadMore: false), for: sessionID)
-        }
+        try database.upsertSessions(sections)
         await publishSessionSections()
     }
 

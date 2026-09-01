@@ -17,6 +17,7 @@ final class SettingsViewModel {
     var bucketSummary: String = String(localized: "Not configured")
     var endpointSummary: String = String(localized: "Not configured")
     var deviceSummary: String = ""
+    var messageFetchPreset: MessageFetchPreset = .balanced
 
     init(environment: AppEnvironment) {
         self.environment = environment
@@ -25,6 +26,8 @@ final class SettingsViewModel {
     func load() async {
         do {
             await environment.chatAppearanceController.load()
+            messageFetchPreset = try await environment.settingsRepository.loadMessageFetchPreset()
+            environment.syncActivityStore.messageFetchPreset = messageFetchPreset
             storageStats = try await environment.chatRepository.storageStats()
             if let config = try await environment.connectionRepository.loadConnectionConfig() {
                 bucketSummary = config.bucket.isEmpty ? String(localized: "Not configured") : config.bucket
@@ -51,6 +54,18 @@ final class SettingsViewModel {
 
     func updateChatFont(_ value: ChatFontPreference) async {
         await environment.chatAppearanceController.setChatFont(value)
+    }
+
+    func updateMessageFetchPreset(_ value: MessageFetchPreset) async {
+        do {
+            try await environment.settingsRepository.saveMessageFetchPreset(value)
+            messageFetchPreset = value
+            environment.syncActivityStore.messageFetchPreset = value
+            await environment.syncRepository.requestImmediateSync(reason: .manualRefresh)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
     }
 
     func refreshSessions() async {

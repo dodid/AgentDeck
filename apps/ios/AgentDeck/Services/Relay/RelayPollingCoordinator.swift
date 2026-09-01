@@ -3,29 +3,32 @@ import Foundation
 actor RelayPollingCoordinator {
     private var pollingTask: Task<Void, Never>?
     private var sleepTask: Task<Void, Never>?
-    private var inFlightFetchTask: Task<Void, Never>?
+    private var inFlightFetchTask: Task<Bool, Never>?
     private var shouldPollImmediately = false
     private var isForegroundActive = true
     private var fetchOperation: (() async -> Bool)?
     private var pollingIntervalProvider: (() async -> Int)?
     private var lastSuccessfulFetchAt: Date?
+    private var generation = 0
 
     func start(
         pollingIntervalProvider: @escaping () async -> Int,
         fetchOperation: @escaping () async -> Bool
     ) {
-        stop()
+        guard pollingTask == nil else { return }
+        generation += 1
+        let currentGeneration = generation
         self.pollingIntervalProvider = pollingIntervalProvider
         self.fetchOperation = fetchOperation
         pollingTask = Task { [weak self] in
-            await self?.runPollingLoop()
+            await self?.runPollingLoop(generation: currentGeneration)
         }
     }
 
     func ensureFresh(maxAge: TimeInterval) async {
         let age = lastSuccessfulFetchAt.map { Date().timeIntervalSince($0) } ?? .infinity
         if age <= maxAge { return }
-        await runFetch()
+        await runFetch(generation: generation)
     }
 
     func requestImmediatePoll() {
@@ -50,6 +53,7 @@ actor RelayPollingCoordinator {
     }
 
     func stop() {
+        generation += 1
         sleepTask?.cancel()
         sleepTask = nil
         pollingTask?.cancel()
@@ -62,8 +66,8 @@ actor RelayPollingCoordinator {
         lastSuccessfulFetchAt = nil
     }
 
-    private func runPollingLoop() async {
-        while !Task.isCancelled {
+    private func runPollingLoop(generation: Int) async {
+        while !Task.isCancelled, generation == self.generation {
             guard isForegroundActive else {
                 let sleeper = Task<Void, Never> {
                     try? await Task.sleep(for: .seconds(32))
@@ -74,8 +78,8 @@ actor RelayPollingCoordinator {
                 continue
             }
 
-            await runFetch()
-            guard !Task.isCancelled else { break }
+            await runFetch(generation: generation)
+            guard !Task.isCancelled, generation == self.generation else { break }
 
             if shouldPollImmediately {
                 shouldPollImmediately = false
@@ -92,9 +96,13 @@ actor RelayPollingCoordinator {
         }
     }
 
-    private func runFetch() async {
+    private func runFetch(generation: Int) async {
         if let inFlightFetchTask {
-            await inFlightFetchTask.value
+            let didSucceed = await inFlightFetchTask.value
+            guard generation == self.generation else { return }
+            if didSucceed {
+                lastSuccessfulFetchAt = Date()
+            }
             return
         }
 
@@ -102,10 +110,9 @@ actor RelayPollingCoordinator {
         let task = Task<Bool, Never> {
             await fetchOperation()
         }
-        inFlightFetchTask = Task<Void, Never> {
-            _ = await task.value
-        }
+        inFlightFetchTask = task
         let didSucceed = await task.value
+        guard generation == self.generation else { return }
         if didSucceed {
             lastSuccessfulFetchAt = Date()
         }

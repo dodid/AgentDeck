@@ -86,6 +86,17 @@
 "Media" = "Medien";
 "Medium" = "Mittel";
 "Message fetch" = "Nachrichtenabruf";
+"Message fetching" = "Nachrichtenabruf";
+"Fetching messages" = "Nachrichten werden abgerufen";
+"Message fetch failed" = "Nachrichtenabruf fehlgeschlagen";
+"Messages up to date" = "Nachrichten sind aktuell";
+"Sync" = "Synchronisierung";
+"Responsive · every 5 sec" = "Schnell · alle 5 Sek.";
+"Balanced · every 15 sec" = "Ausgewogen · alle 15 Sek.";
+"Efficient · every 60 sec" = "Effizient · alle 60 Sek.";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "Solange AgentDeck aktiv ist, werden etwa %lld Posteingangsprüfungen pro Stunde durchgeführt. Häufigere Prüfungen verursachen mehr Netzwerkanfragen.";
+"The relay head did not include an ETag required for a safe update." = "Der Relay-Head enthielt kein ETag, das für eine sichere Aktualisierung erforderlich ist.";
+"The relay inbox chain is incomplete or invalid." = "Die Relay-Posteingangskette ist unvollständig oder ungültig.";
 "Message\U2026" = "Nachricht…";
 "Monospace" = "Monospace";
 "Name" = "Name";

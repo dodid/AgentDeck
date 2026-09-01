@@ -18,14 +18,15 @@ actor DefaultSyncRepository: SyncRepository {
                 }
             },
             fetchOperation: { [engine, activityStore] in
-                await MainActor.run { activityStore.setFetching(true) }
-                defer {
-                    Task { @MainActor in activityStore.setFetching(false) }
-                }
+                await MainActor.run { activityStore.beginFetch() }
                 do {
                     try await engine.syncNow()
+                    await MainActor.run { activityStore.endFetch(succeeded: true) }
                     return true
                 } catch {
+                    await MainActor.run {
+                        activityStore.endFetch(succeeded: false, errorMessage: error.localizedDescription)
+                    }
                     return false
                 }
             }
@@ -41,11 +42,16 @@ actor DefaultSyncRepository: SyncRepository {
     }
 
     func refreshNow() async throws {
-        await MainActor.run { activityStore.setFetching(true) }
-        defer {
-            Task { @MainActor in activityStore.setFetching(false) }
+        await MainActor.run { activityStore.beginFetch() }
+        do {
+            try await engine.syncNow()
+            await MainActor.run { activityStore.endFetch(succeeded: true) }
+        } catch {
+            await MainActor.run {
+                activityStore.endFetch(succeeded: false, errorMessage: error.localizedDescription)
+            }
+            throw error
         }
-        try await engine.syncNow()
     }
 
     func sendMessage(_ text: String, attachments: [DraftAttachment] = [], to sessionID: SessionID) async throws {

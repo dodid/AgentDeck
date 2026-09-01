@@ -55,6 +55,48 @@ final class RelayMessagingServiceTests: XCTestCase {
         XCTAssertEqual(batch.messages.map(\.message.msgID), ["retry-message"])
     }
 
+    func testSendDoesNotMaskNonCASHeadFailure() async throws {
+        let store = TestObjectStore()
+        await store.failNextHeadWriteWithNonCAS()
+        let service = RelayMessagingService(store: store)
+        let target = RelaySendTarget(
+            gatewayPeer: "server",
+            route: RelayRoute(agentID: "main", conversationID: "conversation-1", instanceID: nil)
+        )
+
+        do {
+            _ = try await service.sendMessage(from: "ios", target: target, text: "fail", messageID: "failed-message")
+            XCTFail("Expected the original non-CAS failure")
+        } catch TestObjectStoreError.simulatedFailure {
+            // Expected: callers need the actionable underlying error.
+        } catch {
+            XCTFail("Unexpected error: \(error)")
+        }
+    }
+
+    func testCollectDoesNotSkipMessagesWhenInboxExceedsOldBatchLimit() async throws {
+        let store = TestObjectStore()
+        let service = RelayMessagingService(store: store)
+        let target = RelaySendTarget(
+            gatewayPeer: "server",
+            route: RelayRoute(agentID: "main", conversationID: "conversation-1", instanceID: nil)
+        )
+
+        for index in 0..<205 {
+            _ = try await service.sendMessage(
+                from: "ios",
+                target: target,
+                text: "message \(index)",
+                messageID: "message-\(index)"
+            )
+        }
+
+        let batch = try await service.collectInboxMessages(clientID: "server", lastSeenKey: nil)
+        XCTAssertEqual(batch.messages.count, 205)
+        XCTAssertEqual(batch.messages.first?.message.msgID, "message-0")
+        XCTAssertEqual(batch.messages.last?.message.msgID, "message-204")
+    }
+
     func testApprovalResponseUsesCanonicalContent() async throws {
         let store = TestObjectStore()
         let service = RelayMessagingService(store: store)

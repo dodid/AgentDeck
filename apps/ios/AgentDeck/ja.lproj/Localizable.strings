@@ -86,6 +86,17 @@
 "Media" = "メディア";
 "Medium" = "中";
 "Message fetch" = "メッセージ取得";
+"Message fetching" = "メッセージ取得";
+"Fetching messages" = "メッセージを取得中";
+"Message fetch failed" = "メッセージの取得に失敗しました";
+"Messages up to date" = "メッセージは最新です";
+"Sync" = "同期";
+"Responsive · every 5 sec" = "高速 · 5秒ごと";
+"Balanced · every 15 sec" = "バランス · 15秒ごと";
+"Efficient · every 60 sec" = "省通信 · 60秒ごと";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "AgentDeckのアクティブ中は、1時間あたり約%lld回受信トレイを確認します。間隔を短くするとネットワーク要求が増えます。";
+"The relay head did not include an ETag required for a safe update." = "Relayヘッドに安全な更新に必要なETagが含まれていません。";
+"The relay inbox chain is incomplete or invalid." = "Relay受信チェーンが不完全か無効です。";
 "Message\U2026" = "メッセージ…";
 "Monospace" = "等幅";
 "Name" = "名前";

@@ -86,6 +86,17 @@
 "Media" = "الوسائط";
 "Medium" = "متوسط";
 "Message fetch" = "جلب الرسائل";
+"Message fetching" = "جلب الرسائل";
+"Fetching messages" = "جارٍ جلب الرسائل";
+"Message fetch failed" = "فشل جلب الرسائل";
+"Messages up to date" = "الرسائل محدّثة";
+"Sync" = "المزامنة";
+"Responsive · every 5 sec" = "سريع · كل 5 ثوانٍ";
+"Balanced · every 15 sec" = "متوازن · كل 15 ثانية";
+"Efficient · every 60 sec" = "موفّر · كل 60 ثانية";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "عندما يكون AgentDeck نشطًا، يتم فحص صندوق الوارد نحو %lld مرة في الساعة. تستخدم الفحوصات الأسرع طلبات شبكة أكثر.";
+"The relay head did not include an ETag required for a safe update." = "لم يتضمن رأس Relay قيمة ETag المطلوبة لتحديث آمن.";
+"The relay inbox chain is incomplete or invalid." = "سلسلة صندوق وارد Relay غير مكتملة أو غير صالحة.";
 "Message\U2026" = "رسالة…";
 "Monospace" = "أحادي المسافة";
 "Name" = "الاسم";

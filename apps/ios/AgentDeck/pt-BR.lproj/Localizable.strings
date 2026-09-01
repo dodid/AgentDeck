@@ -86,6 +86,17 @@
 "Media" = "Mídia";
 "Medium" = "Médio";
 "Message fetch" = "Busca de mensagens";
+"Message fetching" = "Busca de mensagens";
+"Fetching messages" = "Buscando mensagens";
+"Message fetch failed" = "Falha ao buscar mensagens";
+"Messages up to date" = "Mensagens atualizadas";
+"Sync" = "Sincronização";
+"Responsive · every 5 sec" = "Rápido · a cada 5 s";
+"Balanced · every 15 sec" = "Equilibrado · a cada 15 s";
+"Efficient · every 60 sec" = "Eficiente · a cada 60 s";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "Enquanto o AgentDeck estiver ativo, serão feitas cerca de %lld verificações da caixa de entrada por hora. Verificações mais frequentes usam mais solicitações de rede.";
+"The relay head did not include an ETag required for a safe update." = "O cabeçalho do relay não incluiu o ETag necessário para uma atualização segura.";
+"The relay inbox chain is incomplete or invalid." = "A cadeia da caixa de entrada do relay está incompleta ou é inválida.";
 "Message\U2026" = "Mensagem…";
 "Monospace" = "Monoespaçada";
 "Name" = "Nome";

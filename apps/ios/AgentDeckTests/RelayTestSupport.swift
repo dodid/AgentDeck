@@ -2,6 +2,7 @@ import Foundation
 @testable import AgentDeck
 
 enum TestObjectStoreError: Error {
+    case simulatedFailure
     case preconditionFailed
 }
 
@@ -14,9 +15,14 @@ actor TestObjectStore: R2ObjectStore {
     private var objects: [String: StoredObject] = [:]
     private var revision = 0
     private var remainingHeadWriteFailures = 0
+    private var shouldFailNextHeadWriteWithNonCAS = false
 
     func failNextHeadWrites(_ count: Int) {
         remainingHeadWriteFailures = count
+    }
+
+    func failNextHeadWriteWithNonCAS() {
+        shouldFailNextHeadWriteWithNonCAS = true
     }
 
     func getData(key: String) async throws -> (data: Data, etag: String?)? {
@@ -31,16 +37,20 @@ actor TestObjectStore: R2ObjectStore {
         ifMatch: String?,
         ifNoneMatch: String?
     ) async throws {
+        if key.hasPrefix("head/"), shouldFailNextHeadWriteWithNonCAS {
+            shouldFailNextHeadWriteWithNonCAS = false
+            throw TestObjectStoreError.simulatedFailure
+        }
         if key.hasPrefix("head/"), remainingHeadWriteFailures > 0 {
             remainingHeadWriteFailures -= 1
-            throw TestObjectStoreError.preconditionFailed
+            throw R2ObjectStoreError.preconditionFailed
         }
         if ifNoneMatch == "*", objects[key] != nil {
-            throw TestObjectStoreError.preconditionFailed
+            throw R2ObjectStoreError.preconditionFailed
         }
         if let ifMatch {
             guard normalized(ifMatch) == objects[key].map({ normalized($0.etag) }) else {
-                throw TestObjectStoreError.preconditionFailed
+                throw R2ObjectStoreError.preconditionFailed
             }
         }
         revision += 1

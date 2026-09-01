@@ -89,6 +89,17 @@ final class ViewModelFlowTests: XCTestCase {
         XCTAssertNil(model.errorMessage)
     }
 
+    func testSettingsUpdatesMessageFetchPresetImmediately() async {
+        let connection = MockConnectionRepository()
+        let environment = makeEnvironment(connection: connection)
+        let model = SettingsViewModel(environment: environment)
+
+        await model.updateMessageFetchPreset(.responsive)
+
+        XCTAssertEqual(model.messageFetchPreset, .responsive)
+        XCTAssertEqual(environment.syncActivityStore.preferredPollingIntervalSeconds, 5)
+    }
+
     func testChatListRefreshSurfacesAndClearsDiscoveryFailures() async {
         let connection = MockConnectionRepository()
         let discovery = MockDiscoveryRepository()
@@ -244,9 +255,12 @@ private final class MockConnectionRepository: ConnectionRepository, @unchecked S
 
 private final class MockSettingsRepository: SettingsRepository, @unchecked Sendable {
     var settings = AppearanceSettings.default
+    var messageFetchPreset = MessageFetchPreset.balanced
 
     func loadAppearanceSettings() async throws -> AppearanceSettings { settings }
     func saveAppearanceSettings(_ settings: AppearanceSettings) async throws { self.settings = settings }
+    func loadMessageFetchPreset() async throws -> MessageFetchPreset { messageFetchPreset }
+    func saveMessageFetchPreset(_ preset: MessageFetchPreset) async throws { messageFetchPreset = preset }
 }
 
 private final class MockDeviceRepository: DeviceRepository, @unchecked Sendable {

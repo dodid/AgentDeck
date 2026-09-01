@@ -67,6 +67,9 @@ struct AppRootView: View {
         .task {
             await coordinator.bootstrap()
             await environment.chatAppearanceController.load()
+            if let preset = try? await environment.settingsRepository.loadMessageFetchPreset() {
+                environment.syncActivityStore.messageFetchPreset = preset
+            }
             await themeController.load()
             await handleScenePhase(scenePhase)
         }

@@ -85,6 +85,17 @@
 "Media" = "媒体";
 "Medium" = "中";
 "Message fetch" = "消息拉取";
+"Message fetching" = "消息拉取";
+"Fetching messages" = "正在拉取消息";
+"Message fetch failed" = "消息拉取失败";
+"Messages up to date" = "消息已是最新";
+"Sync" = "同步";
+"Responsive · every 5 sec" = "及时 · 每 5 秒";
+"Balanced · every 15 sec" = "均衡 · 每 15 秒";
+"Efficient · every 60 sec" = "省流 · 每 60 秒";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "AgentDeck 活跃时，每小时约检查收件箱 %lld 次。检查越频繁，网络请求越多。";
+"The relay head did not include an ETag required for a safe update." = "Relay 头信息中缺少安全更新所需的 ETag。";
+"The relay inbox chain is incomplete or invalid." = "Relay 收件链不完整或无效。";
 "Message\U2026" = "消息…";
 "Monospace" = "等宽";
 "Name" = "名称";

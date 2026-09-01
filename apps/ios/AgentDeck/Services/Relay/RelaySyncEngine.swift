@@ -5,6 +5,8 @@ actor RelaySyncEngine {
     private let deviceRepository: DeviceRepository
     private let chatRepository: DefaultChatRepository
     private let database: AppDatabase
+    private var sendSlotTaken = false
+    private var sendWaiters: [CheckedContinuation<Void, Never>] = []
 
     init(
         connectionRepository: ConnectionRepository,
@@ -25,18 +27,19 @@ actor RelaySyncEngine {
     }
 
     func sendExistingLocalMessage(_ text: String, messageID: MessageID, to sessionID: SessionID) async throws {
-        guard let config = try await connectionRepository.loadConnectionConfig() else {
-            throw ConnectionRepositoryError.incompleteConfiguration
-        }
-        let device = try await deviceRepository.loadDeviceProfile()
-        guard let target = try database.relaySendTarget(for: sessionID) else {
-            throw RelaySyncEngineError.missingSession
-        }
-
-        let messaging = RelayMessagingService(config: config)
-        let uploader = RelayAttachmentUploadService(config: config)
+        await acquireSendSlot()
 
         do {
+            try Task.checkCancellation()
+            guard let config = try await connectionRepository.loadConnectionConfig() else {
+                throw ConnectionRepositoryError.incompleteConfiguration
+            }
+            let device = try await deviceRepository.loadDeviceProfile()
+            guard let target = try database.relaySendTarget(for: sessionID) else {
+                throw RelaySyncEngineError.missingSession
+            }
+            let messaging = RelayMessagingService(config: config)
+            let uploader = RelayAttachmentUploadService(config: config)
             let draftAttachments = try database.draftAttachmentsForMessage(messageID: messageID)
             if !draftAttachments.isEmpty {
                 let now = Date().timeIntervalSince1970 * 1000
@@ -57,39 +60,48 @@ actor RelaySyncEngine {
                 attachments: attachments
             )
             try database.markMessageSent(messageID: messageID)
-            await chatRepository.publishTranscript(for: sessionID, limit: 50)
-            try await syncNow()
         } catch {
+            releaseSendSlot()
             try? database.markMessageFailed(messageID: messageID, error: error.localizedDescription)
             await chatRepository.publishTranscript(for: sessionID, limit: 50)
             throw error
         }
+        releaseSendSlot()
+        await chatRepository.publishTranscript(for: sessionID, limit: 50)
+        try? await syncNow()
     }
 
     func sendApprovalResponse(approvalID: String, decision: String, to sessionID: SessionID) async throws {
-        guard let config = try await connectionRepository.loadConnectionConfig() else {
-            throw ConnectionRepositoryError.incompleteConfiguration
+        await acquireSendSlot()
+        do {
+            try Task.checkCancellation()
+            guard let config = try await connectionRepository.loadConnectionConfig() else {
+                throw ConnectionRepositoryError.incompleteConfiguration
+            }
+            let device = try await deviceRepository.loadDeviceProfile()
+            guard let target = try database.relaySendTarget(for: sessionID) else {
+                throw RelaySyncEngineError.missingSession
+            }
+            let messaging = RelayMessagingService(config: config)
+            _ = try await messaging.sendApprovalResponse(
+                from: device.clientID,
+                target: target,
+                approvalID: approvalID,
+                decision: decision,
+                messageID: UUID().uuidString
+            )
+            try database.markExecApprovalResolved(
+                sessionID: sessionID,
+                approvalID: approvalID,
+                decision: decision
+            )
+        } catch {
+            releaseSendSlot()
+            throw error
         }
-        let device = try await deviceRepository.loadDeviceProfile()
-        guard let target = try database.relaySendTarget(for: sessionID) else {
-            throw RelaySyncEngineError.missingSession
-        }
-
-        let messaging = RelayMessagingService(config: config)
-        _ = try await messaging.sendApprovalResponse(
-            from: device.clientID,
-            target: target,
-            approvalID: approvalID,
-            decision: decision,
-            messageID: UUID().uuidString
-        )
-        try database.markExecApprovalResolved(
-            sessionID: sessionID,
-            approvalID: approvalID,
-            decision: decision
-        )
+        releaseSendSlot()
         await chatRepository.publishTranscript(for: sessionID, limit: 50)
-        try await syncNow()
+        try? await syncNow()
     }
 
     func sendExistingLocalMessage(messageID: MessageID, to sessionID: SessionID) async throws {
@@ -134,6 +146,24 @@ actor RelaySyncEngine {
         )
         _ = try database.ingestInboxEntries(entries, clientID: device.clientID)
         await chatRepository.publishTranscript(for: sessionID, limit: limit)
+    }
+
+    private func acquireSendSlot() async {
+        if !sendSlotTaken {
+            sendSlotTaken = true
+            return
+        }
+        await withCheckedContinuation { continuation in
+            sendWaiters.append(continuation)
+        }
+    }
+
+    private func releaseSendSlot() {
+        guard !sendWaiters.isEmpty else {
+            sendSlotTaken = false
+            return
+        }
+        sendWaiters.removeFirst().resume()
     }
 }
 

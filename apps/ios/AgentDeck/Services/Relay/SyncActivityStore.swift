@@ -6,14 +6,26 @@ import Observation
 final class SyncActivityStore {
     var isFetchingMessages = false
     private(set) var lastFetchAt: Date?
+    private(set) var lastFetchErrorMessage: String?
     private(set) var lastOutgoingSendAt: Date?
     var hasVisibleChat = false
     var hasActiveStreaming = false
+    var messageFetchPreset: MessageFetchPreset = .balanced
+    private var activeFetchCount = 0
 
-    func setFetching(_ value: Bool) {
-        isFetchingMessages = value
-        if !value {
+    func beginFetch() {
+        activeFetchCount += 1
+        isFetchingMessages = true
+    }
+
+    func endFetch(succeeded: Bool, errorMessage: String? = nil) {
+        activeFetchCount = max(0, activeFetchCount - 1)
+        isFetchingMessages = activeFetchCount > 0
+        if succeeded {
             lastFetchAt = Date()
+            lastFetchErrorMessage = nil
+        } else if let errorMessage {
+            lastFetchErrorMessage = errorMessage
         }
     }
 
@@ -32,10 +44,6 @@ final class SyncActivityStore {
     }
 
     var preferredPollingIntervalSeconds: Int {
-        if hasActiveStreaming { return 3 }
-        if didRecentlySendMessage { return 4 }
-        if hasVisibleChat && didRecentlyFetchMessages { return 6 }
-        if hasVisibleChat { return 10 }
-        return 16
+        messageFetchPreset.intervalSeconds
     }
 }

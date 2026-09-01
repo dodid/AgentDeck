@@ -15,6 +15,26 @@ struct SettingsView: View {
             }
             .listRowBackground(AppTheme.panel)
 
+            Section {
+                MenuSettingRow(
+                    icon: "arrow.triangle.2.circlepath",
+                    title: "Message fetching",
+                    value: viewModel.messageFetchPreset.localizedLabel,
+                    options: MessageFetchPreset.allCases.map { value in
+                        MenuSettingOption(
+                            title: value.localizedLabel,
+                            isSelected: value == viewModel.messageFetchPreset,
+                            action: { Task { await viewModel.updateMessageFetchPreset(value) } }
+                        )
+                    }
+                )
+            } header: {
+                Text("Sync")
+            } footer: {
+                Text(fetchFrequencyDescription)
+            }
+            .listRowBackground(AppTheme.panel)
+
             Section("Appearance") {
                 MenuSettingRow(
                     icon: "circle.lefthalf.filled",
@@ -158,6 +178,13 @@ struct SettingsView: View {
 
     private var attachmentStorageLabel: String {
         fileSizeLabel(viewModel.storageStats.attachmentDataSizeBytes)
+    }
+
+    private var fetchFrequencyDescription: String {
+        String.localizedStringWithFormat(
+            String(localized: "While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests."),
+            Int64(viewModel.messageFetchPreset.approximateFetchesPerHour)
+        )
     }
 
     private func fileSizeLabel(_ bytes: Int64) -> String {

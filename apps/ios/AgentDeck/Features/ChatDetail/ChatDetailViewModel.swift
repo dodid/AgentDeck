@@ -26,6 +26,7 @@ final class ChatDetailViewModel {
     var selectedSuggestionIndex: Int = 0
     var availableModels: [ModelDescriptor] = []
     var isFetchingMessages = false
+    var hasFetchError = false
     var didRecentlyFetchMessages = false
     var appearanceRenderToken: Int = 0
     var approvalStates: [String: ApprovalCardState] = [:]
@@ -100,6 +101,7 @@ final class ChatDetailViewModel {
         Task {
             while !Task.isCancelled {
                 self.isFetchingMessages = environment.syncActivityStore.isFetchingMessages
+                self.hasFetchError = environment.syncActivityStore.lastFetchErrorMessage != nil
                 self.didRecentlyFetchMessages = environment.syncActivityStore.didRecentlyFetchMessages
                 try? await Task.sleep(for: .milliseconds(500))
             }

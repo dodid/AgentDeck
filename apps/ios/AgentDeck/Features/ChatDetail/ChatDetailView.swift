@@ -64,7 +64,8 @@ struct ChatDetailView: View {
                 ToolbarItem(placement: .principal) {
                     SessionTitleView(
                         label: viewModel.title,
-                        isFetchingMessages: viewModel.isFetchingMessages
+                        isFetchingMessages: viewModel.isFetchingMessages,
+                        hasFetchError: viewModel.hasFetchError
                     )
                 }
                 ToolbarItem(placement: .topBarTrailing) {

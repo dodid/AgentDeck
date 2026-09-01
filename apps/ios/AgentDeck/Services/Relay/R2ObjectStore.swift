@@ -10,12 +10,14 @@ protocol R2ObjectStore: Sendable {
 enum R2ObjectStoreError: LocalizedError {
     case invalidEndpoint
     case invalidResponse
+    case preconditionFailed
     case httpStatus(Int, String)
 
     var errorDescription: String? {
         switch self {
         case .invalidEndpoint: return "The R2 endpoint is invalid."
         case .invalidResponse: return "The R2 service returned an invalid response."
+        case .preconditionFailed: return "The R2 object changed before it could be updated."
         case let .httpStatus(status, message): return "R2 request failed (HTTP \(status)): \(message)"
         }
     }
@@ -101,6 +103,7 @@ final class R2S3ObjectStore: R2ObjectStore, @unchecked Sendable {
         let signature = Self.hmacHex(stringToSign, key: Self.signingKey(secret: secretAccessKey, dateStamp: dateStamp, region: region))
 
         var request = URLRequest(url: url)
+        request.timeoutInterval = 20
         request.httpMethod = method
         request.httpBody = body
         for (name, value) in signedHeaders { request.setValue(value, forHTTPHeaderField: name) }
@@ -132,6 +135,9 @@ final class R2S3ObjectStore: R2ObjectStore, @unchecked Sendable {
     }
 
     private func requireSuccess(_ response: HTTPURLResponse, body: Data) throws {
+        if response.statusCode == 409 || response.statusCode == 412 {
+            throw R2ObjectStoreError.preconditionFailed
+        }
         guard (200..<300).contains(response.statusCode) else {
             throw R2ObjectStoreError.httpStatus(response.statusCode, String(data: body, encoding: .utf8) ?? "No response body")
         }

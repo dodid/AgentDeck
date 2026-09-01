@@ -3,6 +3,21 @@ import XCTest
 @testable import AgentDeck
 
 final class AppDatabaseBehaviorTests: XCTestCase {
+    func testDiscoveryAbsenceDoesNotDeleteCachedSessionHistory() throws {
+        try withSeededDatabase { database, sessionID in
+            _ = try database.insertLocalOutgoingMessage(
+                text: "keep me",
+                sessionID: sessionID,
+                deviceID: "ios"
+            )
+
+            try database.upsertSessions([])
+
+            XCTAssertEqual(try database.sessionSections().first?.sessions.first?.id, sessionID)
+            XCTAssertEqual(try database.transcript(sessionID: sessionID, limit: 10).messages.first?.text, "keep me")
+        }
+    }
+
     func testOutgoingMessageAttachmentFailureAndRetryLifecycle() throws {
         try withSeededDatabase { database, sessionID in
             let draft = DraftAttachment(
@@ -184,7 +199,7 @@ final class AppDatabaseBehaviorTests: XCTestCase {
         let gatewayID = GatewayID(rawValue: "server")
         let sessionID = SessionID(rawValue: "server::main::agent:main:main")
         let route = RelayRoute(agentID: "main", conversationID: "agent:main:main", instanceID: nil)
-        _ = try database.upsertSessions([GatewaySection(
+        try database.upsertSessions([GatewaySection(
             id: gatewayID,
             gateway: Gateway(
                 id: gatewayID,

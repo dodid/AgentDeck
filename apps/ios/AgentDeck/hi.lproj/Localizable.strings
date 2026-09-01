@@ -86,6 +86,17 @@
 "Media" = "मीडिया";
 "Medium" = "मध्यम";
 "Message fetch" = "संदेश प्राप्ति";
+"Message fetching" = "संदेश प्राप्ति";
+"Fetching messages" = "संदेश प्राप्त किए जा रहे हैं";
+"Message fetch failed" = "संदेश प्राप्ति विफल";
+"Messages up to date" = "संदेश अद्यतन हैं";
+"Sync" = "सिंक";
+"Responsive · every 5 sec" = "तेज़ · हर 5 सेकंड";
+"Balanced · every 15 sec" = "संतुलित · हर 15 सेकंड";
+"Efficient · every 60 sec" = "किफ़ायती · हर 60 सेकंड";
+"While AgentDeck is active, this makes about %lld inbox checks per hour. Faster checks use more network requests." = "AgentDeck सक्रिय रहने पर प्रति घंटे लगभग %lld इनबॉक्स जाँच होंगी। तेज़ जाँच अधिक नेटवर्क अनुरोध का उपयोग करती है।";
+"The relay head did not include an ETag required for a safe update." = "Relay head में सुरक्षित अपडेट के लिए आवश्यक ETag नहीं था।";
+"The relay inbox chain is incomplete or invalid." = "Relay इनबॉक्स शृंखला अधूरी या अमान्य है।";
 "Message\U2026" = "संदेश…";
 "Monospace" = "मोनोस्पेस";
 "Name" = "नाम";
