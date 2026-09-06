@@ -27,8 +27,8 @@
     "directory": "integrations/openclaw"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "3.1119.0",
-    "@aws-sdk/s3-request-presigner": "3.1119.0",
+    "@aws-sdk/client-s3": "3.1125.0",
+    "@aws-sdk/s3-request-presigner": "3.1125.0",
     "openclaw": "^2026.7.1-2",
     "zod": "^4.4.3"
   },
